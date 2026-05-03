@@ -14,9 +14,13 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   bool _isLoading = false;
 
   void _showAddPaymentSheet() {
+    final app = context.read<AppState>();
+    final isEn = app.locale.languageCode == 'en';
+    
     final nameController = TextEditingController();
     final numberController = TextEditingController();
     final expiryController = TextEditingController();
+    final cvvController = TextEditingController();
 
     showModalBottomSheet(
       context: context,
@@ -32,29 +36,55 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Add Payment Method',
+            Text(isEn ? 'Add Payment Method' : 'إضافة وسيلة دفع',
                 style: Theme.of(ctx).textTheme.titleLarge),
             const SizedBox(height: 16),
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(labelText: 'Card Holder Name'),
+              decoration: InputDecoration(
+                labelText: isEn ? 'Card Holder Name' : 'اسم صاحب البطاقة',
+                prefixIcon: const Icon(Icons.person_outline),
+              ),
+              textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: 12),
             TextField(
               controller: numberController,
-              decoration: const InputDecoration(
-                labelText: 'Card Number',
-                hintText: 'XXXX XXXX XXXX 1234',
+              decoration: InputDecoration(
+                labelText: isEn ? 'Card Number' : 'رقم البطاقة',
+                hintText: 'XXXX XXXX XXXX XXXX',
+                prefixIcon: const Icon(Icons.credit_card),
               ),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: expiryController,
-              decoration: const InputDecoration(
-                labelText: 'Expiry Date',
-                hintText: 'MM/YY',
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: expiryController,
+                    decoration: InputDecoration(
+                      labelText: isEn ? 'Expiry Date' : 'تاريخ الانتهاء',
+                      hintText: 'MM/YY',
+                      prefixIcon: const Icon(Icons.calendar_today_outlined),
+                    ),
+                    keyboardType: TextInputType.datetime,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: cvvController,
+                    decoration: InputDecoration(
+                      labelText: 'CVV',
+                      hintText: 'XXX',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                    ),
+                    keyboardType: TextInputType.number,
+                    obscureText: true,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -62,8 +92,14 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
               child: FilledButton(
                 onPressed: () async {
                   if (nameController.text.isEmpty ||
-                      numberController.text.length < 4 ||
-                      expiryController.text.isEmpty) return;
+                      numberController.text.length < 12 ||
+                      expiryController.text.isEmpty ||
+                      cvvController.text.length < 3) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(isEn ? 'Please enter valid card details' : 'يرجى إدخال بيانات البطاقة بشكل صحيح')),
+                    );
+                    return;
+                  }
 
                   final last4 = numberController.text
                       .substring(numberController.text.length - 4);
@@ -73,13 +109,15 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                   
                   await context.read<AppState>().addPaymentMethod(
                         cardHolderName: nameController.text,
+                        cardNumber: numberController.text,
                         last4Digits: last4,
                         expiryDate: expiryController.text,
+                        cvv: cvvController.text,
                       );
                   
                   setState(() => _isLoading = false);
                 },
-                child: const Text('Save Card'),
+                child: Text(isEn ? 'Save Card' : 'حفظ البطاقة'),
               ),
             ),
             const SizedBox(height: 20),
@@ -91,10 +129,12 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final methods = context.watch<AppState>().paymentMethods;
+    final app = context.watch<AppState>();
+    final isEn = app.locale.languageCode == 'en';
+    final methods = app.paymentMethods;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Payment Methods')),
+      appBar: AppBar(title: Text(isEn ? 'Payment Methods' : 'وسائل الدفع')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : methods.isEmpty
@@ -105,12 +145,12 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                       const Icon(Icons.credit_card_off,
                           size: 64, color: Colors.grey),
                       const SizedBox(height: 16),
-                      const Text('No payment methods saved'),
+                      Text(isEn ? 'No payment methods saved' : 'لا توجد وسائل دفع محفوظة'),
                       const SizedBox(height: 16),
                       FilledButton.icon(
                         onPressed: _showAddPaymentSheet,
                         icon: const Icon(Icons.add),
-                        label: const Text('Add Method'),
+                        label: Text(isEn ? 'Add Method' : 'إضافة وسيلة'),
                       ),
                     ],
                   ),
@@ -126,7 +166,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                         leading: const Icon(Icons.credit_card),
                         title: Text('**** **** **** ${card.last4Digits}'),
                         subtitle: Text(
-                            '${card.cardHolderName} • Exp: ${card.expiryDate}'),
+                            '${card.cardHolderName} • ${isEn ? 'Exp' : 'تنتهي'}: ${card.expiryDate}'),
                         trailing: IconButton(
                           icon: const Icon(Icons.delete_outline, color: Colors.red),
                           onPressed: () => context

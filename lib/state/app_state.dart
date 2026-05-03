@@ -1,30 +1,36 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../data/seed_data.dart';
 import '../models/course.dart';
 import '../models/user_profile.dart';
 import '../models/payment_method.dart';
+import '../data/seed_data.dart';
+
+enum AppStatus { initial, loading, authenticated, unauthenticated, error }
 
 class AppState extends ChangeNotifier {
   AppState();
 
-  FirebaseAuth? _auth;
-  FirebaseFirestore? _db;
-  FirebaseStorage? _storage;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  bool _firebaseAvailable = false;
-  bool get isFirebaseAvailable => _firebaseAvailable;
+  static const _kAdminEmail = 'mmomoadel@gmail.com';
 
-  bool _ready = false;
-  bool get isReady => _ready;
+  AppStatus _status = AppStatus.initial;
+  AppStatus get status => _status;
+
+  Locale _locale = const Locale('en');
+  Locale get locale => _locale;
+
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
 
   bool onboardingComplete = false;
   UserProfile? currentUser;
@@ -41,110 +47,147 @@ class AppState extends ChangeNotifier {
   static const _kPurchased = 'purchased_ids';
   static const _kFavorites = 'favorite_ids';
   static const _kProgress = 'video_progress';
-  static const _kCourses = 'courses_json';
-  static const _kUser = 'user_profile';
-  static const _kPayments = 'payment_methods_json';
+  static const _kLocale = 'selected_locale';
 
-  Future<void> init({bool isFirebaseAvailable = true}) async {
-    _firebaseAvailable = isFirebaseAvailable;
-    
-    if (_firebaseAvailable) {
-      _auth = FirebaseAuth.instance;
-      _db = FirebaseFirestore.instance;
-      _storage = FirebaseStorage.instance;
-    }
+  Future<void> init() async {
+    _status = AppStatus.loading;
+    notifyListeners();
 
-    final p = await SharedPreferences.getInstance();
-    onboardingComplete = p.getBool(_kOnboarding) ?? false;
+    try {
+      final p = await SharedPreferences.getInstance();
+      onboardingComplete = p.getBool(_kOnboarding) ?? false;
+      
+      final savedLocale = p.getString(_kLocale);
+      if (savedLocale != null) {
+        _locale = Locale(savedLocale);
+      }
 
-    // Listen to Auth changes
-    if (_firebaseAvailable) {
-      _auth!.authStateChanges().listen(
+      // Load local preferences
+      purchasedCourseIds.addAll(p.getStringList(_kPurchased) ?? []);
+      favoriteCourseIds.addAll(p.getStringList(_kFavorites) ?? []);
+      
+      final progRaw = p.getString(_kProgress);
+      if (progRaw != null) {
+        final map = jsonDecode(progRaw) as Map<String, dynamic>;
+        videoProgressSeconds.addAll(map.map((k, v) => MapEntry(k, (v as num).toInt())));
+      }
+
+      // Sync seed data: Ensure all default courses exist in Firestore
+      final seedCourses = buildSeedCourses();
+      for (final c in seedCourses) {
+        // We use a simple existence check to avoid overwriting admin changes 
+        // but ensuring new seed courses are added.
+        final docRef = _db.collection('courses').doc(c.id);
+        final doc = await docRef.get();
+        if (!doc.exists) {
+          await docRef.set(c.toJson());
+        }
+      }
+
+      // Real-time listener for courses
+      _db.collection('courses').snapshots().listen((snapshot) {
+        _courses = snapshot.docs.map((d) {
+          final data = d.data();
+          if (data['id'] == null) data['id'] = d.id;
+          return Course.fromJson(data);
+        }).toList();
+        notifyListeners();
+      });
+
+      // Listen for total users count (Admin only logic usually, but here in AppState)
+      _db.collection('users').snapshots().listen((snapshot) {
+        _totalUsersCount = snapshot.docs.length;
+        notifyListeners();
+      });
+
+      // Listen for purchases to calculate revenue
+      _db.collection('purchases').snapshots().listen((snapshot) {
+        double revenue = 0.0;
+        for (var doc in snapshot.docs) {
+          revenue += (doc.data()['price'] as num?)?.toDouble() ?? 0.0;
+        }
+        _totalRevenue = revenue;
+        notifyListeners();
+      });
+
+      // Listen to Auth changes
+      _auth.authStateChanges().listen(
         (user) async {
-          try {
-            if (user != null) {
+          if (user != null) {
+            try {
               await _loadUserData(user.uid);
-            } else {
-              currentUser = null;
-              paymentMethods = [];
-              notifyListeners();
+              _status = AppStatus.authenticated;
+            } catch (e) {
+              _status = AppStatus.error;
+              _errorMessage = 'Failed to load user data: $e';
             }
-          } catch (e) {
-            debugPrint('Error loading user data: $e');
+          } else {
+            currentUser = null;
+            paymentMethods = [];
+            _status = AppStatus.unauthenticated;
           }
+          notifyListeners();
         },
         onError: (e) {
-          debugPrint('Auth stream error (likely invalid config): $e');
-          // If the auth stream fails, we don't crash, we just remain in Demo Mode
+          _status = AppStatus.error;
+          _errorMessage = 'Authentication stream error: $e';
+          notifyListeners();
         },
       );
+    } catch (e) {
+      _status = AppStatus.error;
+      _errorMessage = 'Initialization failed: $e';
+      notifyListeners();
+      rethrow;
     }
-
-    purchasedCourseIds
-      ..clear()
-      ..addAll(_readStringList(p, _kPurchased));
-
-    favoriteCourseIds
-      ..clear()
-      ..addAll(_readStringList(p, _kFavorites));
-
-    final progRaw = p.getString(_kProgress);
-    if (progRaw != null) {
-      final map = jsonDecode(progRaw) as Map<String, dynamic>;
-      videoProgressSeconds
-        ..clear()
-        ..addAll(map.map((k, v) => MapEntry(k, (v as num).toInt())));
-    }
-
-    final coursesRaw = p.getString(_kCourses);
-    if (coursesRaw != null) {
-      final list = jsonDecode(coursesRaw) as List<dynamic>;
-      _courses = list
-          .map((e) => Course.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } else {
-      _courses = buildSeedCourses();
-    }
-
-    if (!_firebaseAvailable) {
-      final userRaw = p.getString(_kUser);
-      if (userRaw != null) {
-        currentUser = UserProfile.fromJson(jsonDecode(userRaw));
-      }
-      final paymentsRaw = p.getString(_kPayments);
-      if (paymentsRaw != null) {
-        final list = jsonDecode(paymentsRaw) as List<dynamic>;
-        paymentMethods = list
-            .map((e) => PaymentMethod.fromJson(e as Map<String, dynamic>))
-            .toList();
-      }
-    }
-
-    _ready = true;
-    notifyListeners();
   }
 
   Future<void> _loadUserData(String uid) async {
-    if (!_firebaseAvailable) return;
-    
-    final doc = await _db!.collection('users').doc(uid).get();
-    if (doc.exists) {
-      currentUser = UserProfile.fromJson(doc.data()!);
+    final doc = await _db.collection('users').doc(uid).get();
+    if (!doc.exists) {
+      // Create a default profile if it doesn't exist (e.g. for users created via Console or first-time login)
+      final user = _auth.currentUser;
+      if (user != null) {
+        final email = user.email ?? '';
+        final bool isActuallyAdmin = email.trim().toLowerCase() == _kAdminEmail;
+
+        final newUser = UserProfile(
+          id: uid,
+          name: user.displayName ?? 'New User',
+          email: email,
+          createdAt: DateTime.now(),
+          role: isActuallyAdmin ? 'admin' : 'user',
+          isAdmin: isActuallyAdmin,
+        );
+        await _db.collection('users').doc(uid).set(newUser.toJson());
+        currentUser = newUser;
+      } else {
+        throw Exception('No authenticated user found');
+      }
+    } else {
+      final data = doc.data()!;
+      currentUser = UserProfile.fromJson(data);
+      
+      // Force admin status if the email matches, even if the doc was previously non-admin
+      final bool isActuallyAdmin = currentUser!.email.trim().toLowerCase() == _kAdminEmail;
+      if (isActuallyAdmin && !currentUser!.isAdmin) {
+        currentUser!.isAdmin = true;
+        currentUser!.role = 'admin';
+        await _db.collection('users').doc(uid).update({
+          'isAdmin': true,
+          'role': 'admin',
+        });
+      }
     }
-    
-    final payments = await _db!
+
+    final payments = await _db
         .collection('payment_methods')
         .where('userId', isEqualTo: uid)
         .get();
+    
     paymentMethods = payments.docs
         .map((d) => PaymentMethod.fromJson(d.data()))
         .toList();
-    
-    notifyListeners();
-  }
-
-  Set<String> _readStringList(SharedPreferences p, String key) {
-    return p.getStringList(key)?.toSet() ?? {};
   }
 
   Future<void> _persist() async {
@@ -152,38 +195,22 @@ class AppState extends ChangeNotifier {
     await p.setBool(_kOnboarding, onboardingComplete);
     await p.setStringList(_kPurchased, purchasedCourseIds.toList());
     await p.setStringList(_kFavorites, favoriteCourseIds.toList());
-    await p.setString(
-      _kProgress,
-      jsonEncode(
-        videoProgressSeconds.map((k, v) => MapEntry(k, v)),
-      ),
-    );
-    await p.setString(
-      _kCourses,
-      jsonEncode(_courses.map((c) => c.toJson()).toList()),
-    );
-
-    if (!_firebaseAvailable) {
-      if (currentUser != null) {
-        await p.setString(_kUser, jsonEncode(currentUser!.toJson()));
-      } else {
-        await p.remove(_kUser);
-      }
-      await p.setString(
-        _kPayments,
-        jsonEncode(paymentMethods.map((m) => m.toJson()).toList()),
-      );
-    }
+    await p.setString(_kProgress, jsonEncode(videoProgressSeconds));
+    await p.setString(_kLocale, _locale.languageCode);
   }
 
-  Future<void> completeOnboarding() async {
-    onboardingComplete = true;
+  Future<void> toggleLanguage() async {
+    if (_locale.languageCode == 'en') {
+      _locale = const Locale('ar');
+    } else {
+      _locale = const Locale('en');
+    }
     notifyListeners();
     await _persist();
   }
 
-  Future<void> resetOnboardingForDemo() async {
-    onboardingComplete = false;
+  Future<void> completeOnboarding() async {
+    onboardingComplete = true;
     notifyListeners();
     await _persist();
   }
@@ -196,124 +223,52 @@ class AppState extends ChangeNotifier {
     DateTime? dateOfBirth,
     Uint8List? imageBytes,
   }) async {
-    if (!_firebaseAvailable) {
-      _performDemoRegister(name, email, phone, dateOfBirth);
-      return;
+    final cred = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    final uid = cred.user!.uid;
+
+    String imageUrl = '';
+    if (imageBytes != null) {
+      final ref = _storage.ref().child('profiles/$uid.jpg');
+      await ref.putData(imageBytes);
+      imageUrl = await ref.getDownloadURL();
     }
 
-    try {
-      final cred = await _auth!.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      final uid = cred.user!.uid;
+    final bool isActuallyAdmin = email.trim().toLowerCase() == _kAdminEmail;
 
-      String imageUrl = '';
-      if (imageBytes != null) {
-        final ref = _storage!.ref().child('profiles/$uid.jpg');
-        await ref.putData(imageBytes);
-        imageUrl = await ref.getDownloadURL();
-      }
-
-      final newUser = UserProfile(
-        id: uid,
-        name: name,
-        email: email,
-        phone: phone,
-        profileImageUrl: imageUrl,
-        dateOfBirth: dateOfBirth,
-        createdAt: DateTime.now(),
-        isAdmin: email.toLowerCase().contains('admin'),
-      );
-
-      await _db!.collection('users').doc(uid).set(newUser.toJson());
-      currentUser = newUser;
-      notifyListeners();
-      await _persist();
-    } catch (e) {
-      final err = e.toString();
-      if (err.contains('configuration-not-found') || 
-          err.contains('invalid-credential') ||
-          err.contains('api-key-not-found')) {
-        debugPrint('Firebase Auth config error during register: $e. Falling back to Demo.');
-        _performDemoRegister(name, email, phone, dateOfBirth);
-      } else {
-        rethrow;
-      }
-    }
-  }
-
-  void _performDemoRegister(String name, String email, String phone, DateTime? dob) {
-    currentUser = UserProfile(
-      id: 'demo-user-${DateTime.now().millisecondsSinceEpoch}',
+    final newUser = UserProfile(
+      id: uid,
       name: name,
       email: email,
       phone: phone,
-      dateOfBirth: dob,
+      profileImageUrl: imageUrl,
+      dateOfBirth: dateOfBirth,
       createdAt: DateTime.now(),
+      role: isActuallyAdmin ? 'admin' : 'user',
+      isAdmin: isActuallyAdmin,
     );
+
+    await _db.collection('users').doc(uid).set(newUser.toJson());
+    currentUser = newUser;
+    _status = AppStatus.authenticated;
     notifyListeners();
-    _persist();
+    await _persist();
   }
 
   Future<void> loginEmail({
     required String email,
     required String password,
   }) async {
-    if (!_firebaseAvailable) {
-      _performDemoLogin(email);
-      return;
-    }
-    
-    try {
-      await _auth!.signInWithEmailAndPassword(email: email, password: password);
-    } catch (e) {
-      final err = e.toString();
-      if (err.contains('configuration-not-found') || 
-          err.contains('invalid-credential') ||
-          err.contains('api-key-not-found')) {
-        debugPrint('Firebase Auth config error during login: $e. Falling back to Demo.');
-        _performDemoLogin(email);
-      } else {
-        rethrow;
-      }
-    }
-  }
-
-  void _performDemoLogin(String email) {
-    currentUser = UserProfile(
-      id: 'demo-user',
-      name: 'Demo Learner',
-      email: email,
-      phone: '1234567890',
-      createdAt: DateTime.now(),
-    );
-    notifyListeners();
-    _persist();
-  }
-
-  Future<void> loginGoogleMock() async {
-    const email = 'learner@gmail.com';
-    if (!_firebaseAvailable) {
-      _performDemoLogin(email);
-      return;
-    }
-    
-    try {
-      // This is a "mock" that actually tries Firebase if available
-      await _auth!.signInWithEmailAndPassword(email: email, password: 'password123');
-    } catch (e) {
-      debugPrint('Google Mock Login failed, falling back to Demo Mode: $e');
-      _performDemoLogin(email);
-    }
+    await _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
   Future<void> logout() async {
-    if (_firebaseAvailable) {
-      await _auth!.signOut();
-    }
+    await _auth.signOut();
     currentUser = null;
     paymentMethods = [];
+    _status = AppStatus.unauthenticated;
     notifyListeners();
     await _persist();
   }
@@ -328,8 +283,8 @@ class AppState extends ChangeNotifier {
     if (u == null) return;
 
     String imageUrl = u.profileImageUrl;
-    if (_firebaseAvailable && imageBytes != null) {
-      final ref = _storage!.ref().child('profiles/${u.id}.jpg');
+    if (imageBytes != null) {
+      final ref = _storage.ref().child('profiles/${u.id}.jpg');
       await ref.putData(imageBytes);
       imageUrl = await ref.getDownloadURL();
     }
@@ -346,54 +301,42 @@ class AppState extends ChangeNotifier {
       isAdmin: u.isAdmin,
     );
 
-    if (_firebaseAvailable) {
-      await _db!.collection('users').doc(u.id).update(updated.toJson());
-    }
-    
+    await _db.collection('users').doc(u.id).update(updated.toJson());
     currentUser = updated;
     notifyListeners();
-    await _persist();
   }
 
   Future<void> addPaymentMethod({
     required String cardHolderName,
+    required String cardNumber,
     required String last4Digits,
     required String expiryDate,
+    required String cvv,
   }) async {
     final uid = currentUser?.id;
     if (uid == null) return;
 
+    final docRef = _db.collection('payment_methods').doc();
     final method = PaymentMethod(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: docRef.id,
       userId: uid,
       cardHolderName: cardHolderName,
+      cardNumber: cardNumber,
       last4Digits: last4Digits,
       expiryDate: expiryDate,
+      cvv: cvv,
       createdAt: DateTime.now(),
     );
 
-    if (_firebaseAvailable) {
-      final docRef = _db!.collection('payment_methods').doc();
-      final finalMethod = method.copyWith(id: docRef.id);
-      await docRef.set(finalMethod.toJson());
-      paymentMethods.add(finalMethod);
-    } else {
-      paymentMethods.add(method);
-      await _persist();
-    }
-    
+    await docRef.set(method.toJson());
+    paymentMethods.add(method);
     notifyListeners();
   }
 
   Future<void> deletePaymentMethod(String id) async {
-    if (_firebaseAvailable) {
-      await _db!.collection('payment_methods').doc(id).delete();
-    }
+    await _db.collection('payment_methods').doc(id).delete();
     paymentMethods.removeWhere((m) => m.id == id);
     notifyListeners();
-    if (!_firebaseAvailable) {
-      await _persist();
-    }
   }
 
   // Analytics Helpers
@@ -458,6 +401,20 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> purchaseCourse(String courseId) async {
+    final course = courseById(courseId);
+    if (course == null) return;
+
+    final uid = currentUser?.id;
+    if (uid != null) {
+      // Record purchase in Firestore
+      await _db.collection('purchases').add({
+        'userId': uid,
+        'courseId': courseId,
+        'price': course.price,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    }
+
     purchasedCourseIds.add(courseId);
     notifyListeners();
     await _persist();
@@ -473,22 +430,27 @@ class AppState extends ChangeNotifier {
 
   Future<void> upsertCourse(Course course) async {
     final i = _courses.indexWhere((c) => c.id == course.id);
+    
+    // Persist to Firestore
+    await _db.collection('courses').doc(course.id).set(course.toJson());
+
     if (i >= 0) {
       _courses[i] = course;
     } else {
       _courses.add(course);
     }
     notifyListeners();
-    await _persist();
   }
 
   Future<void> deleteCourse(String id) async {
+    // Delete from Firestore
+    await _db.collection('courses').doc(id).delete();
+
     _courses.removeWhere((c) => c.id == id);
     purchasedCourseIds.remove(id);
     favoriteCourseIds.remove(id);
     videoProgressSeconds.remove(id);
     notifyListeners();
-    await _persist();
   }
 
   List<String> get categories {
@@ -538,4 +500,19 @@ class AppState extends ChangeNotifier {
     }
     return it.length;
   }
+
+  int _totalUsersCount = 0;
+  int get totalUsersCount => _totalUsersCount;
+
+  double get totalRevenue {
+    double revenue = 0.0;
+    // This is a simplification. Ideally, we'd have a 'purchases' collection in Firestore.
+    // For now, we calculate based on the current user's purchases if we want personal revenue,
+    // but the task asks for AppState revenue/user count logic, likely for an admin view.
+    // If it's for admin, we need to fetch this from Firestore.
+    return _totalRevenue;
+  }
+  double _totalRevenue = 0.0;
+
+  int get featuredCoursesCount => _courses.where((c) => c.featured).length;
 }

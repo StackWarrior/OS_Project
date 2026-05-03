@@ -25,15 +25,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -47,29 +41,51 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: "AIzaSyBkQ6Cqwpnwt8OfQ1T_jsW3rRVEc7_BnLw",
-    authDomain: "course-learning-app-b4be1.firebaseapp.com",
-    projectId: "course-learning-app-b4be1",
-    storageBucket: "course-learning-app-b4be1.firebasestorage.app",
-    messagingSenderId: "456395953392",
-    appId: "1:456395953392:web:632d3c70a31cff7fa69e35",
-    measurementId: "G-4XEPC035C1",
+    apiKey: 'AIzaSyBkQ6Cqwpnwt8OfQ1T_jsW3rRVEc7_BnLw',
+    appId: '1:456395953392:web:632d3c70a31cff7fa69e35',
+    messagingSenderId: '456395953392',
+    projectId: 'course-learning-app-b4be1',
+    authDomain: 'course-learning-app-b4be1.firebaseapp.com',
+    storageBucket: 'course-learning-app-b4be1.firebasestorage.app',
+    measurementId: 'G-4XEPC035C1',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: "AIzaSyBkQ6Cqwpnwt8OfQ1T_jsW3rRVEc7_BnLw",
-    appId: "1:456395953392:android:632d3c70a31cff7fa69e35",
-    messagingSenderId: "456395953392",
-    projectId: "course-learning-app-b4be1",
-    storageBucket: "course-learning-app-b4be1.firebasestorage.app",
+    apiKey: 'AIzaSyAD82RjuvJf5E72MLLCNLDSOCV-drxUWsw',
+    appId: '1:456395953392:android:6b6e7ef5f54de613a69e35',
+    messagingSenderId: '456395953392',
+    projectId: 'course-learning-app-b4be1',
+    storageBucket: 'course-learning-app-b4be1.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: "AIzaSyBkQ6Cqwpnwt8OfQ1T_jsW3rRVEc7_BnLw",
-    appId: "1:456395953392:ios:632d3c70a31cff7fa69e35",
-    messagingSenderId: "456395953392",
-    projectId: "course-learning-app-b4be1",
-    storageBucket: "course-learning-app-b4be1.firebasestorage.app",
-    iosBundleId: "com.example.courseLearningApp",
+    apiKey: 'AIzaSyB0MxbKaQRGP8mboTd-7cMJZmArUpH2I_U',
+    appId: '1:456395953392:ios:2d1158199e1c5d51a69e35',
+    messagingSenderId: '456395953392',
+    projectId: 'course-learning-app-b4be1',
+    storageBucket: 'course-learning-app-b4be1.firebasestorage.app',
+    iosClientId: '456395953392-4jn8kemispk6vt6j0vbg22tkq7gvk5pj.apps.googleusercontent.com',
+    iosBundleId: 'com.example.courseLearningApp',
   );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyB0MxbKaQRGP8mboTd-7cMJZmArUpH2I_U',
+    appId: '1:456395953392:ios:2d1158199e1c5d51a69e35',
+    messagingSenderId: '456395953392',
+    projectId: 'course-learning-app-b4be1',
+    storageBucket: 'course-learning-app-b4be1.firebasestorage.app',
+    iosClientId: '456395953392-4jn8kemispk6vt6j0vbg22tkq7gvk5pj.apps.googleusercontent.com',
+    iosBundleId: 'com.example.courseLearningApp',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyBkQ6Cqwpnwt8OfQ1T_jsW3rRVEc7_BnLw',
+    appId: '1:456395953392:web:c70862b6fe14d9f7a69e35',
+    messagingSenderId: '456395953392',
+    projectId: 'course-learning-app-b4be1',
+    authDomain: 'course-learning-app-b4be1.firebaseapp.com',
+    storageBucket: 'course-learning-app-b4be1.firebasestorage.app',
+    measurementId: 'G-MS7546H6F7',
+  );
+
 }

@@ -164,5 +164,77 @@ List<Course> buildSeedCourses() {
             ['major.minor.patch', 'random strings', 'RGB tuples', 'latitude/longitude'], 0),
       ],
     ),
+    Course(
+      id: 'c9',
+      title: 'Full-Stack Web with Flutter',
+      description:
+          'Learn to build responsive, SEO-friendly web applications using Flutter for Web and a Node.js backend.',
+      category: 'Web',
+      price: 49.99,
+      thumbnailUrl: thumb(9),
+      videoUrl: kDemoVideoUrl,
+      durationMinutes: 450,
+      featured: true,
+      quiz: [
+        q('c9q1', 'Which package is often used for routing in Flutter Web?',
+            ['go_router', 'http', 'provider', 'path_provider'], 0),
+        q('c9q2', 'Can Flutter Web apps be served as static files?',
+            ['No', 'Only on Firebase', 'Yes', 'Only on Android'], 2),
+      ],
+    ),
+    Course(
+      id: 'c10',
+      title: 'AI & Machine Learning for Devs',
+      description:
+          'Integrate OpenAI, TensorFlow Lite, and Computer Vision into your mobile apps with hands-on projects.',
+      category: 'AI',
+      price: 69.99,
+      thumbnailUrl: thumb(10),
+      videoUrl: kDemoVideoUrl,
+      durationMinutes: 520,
+      featured: true,
+      quiz: [
+        q('c10q1', 'What does LLM stand for?',
+            ['Large Language Model', 'Linear Line Matrix', 'Local Logic Module', 'Low Level Memory'], 0),
+        q('c10q2', 'TensorFlow Lite is optimized for:',
+            ['Supercomputers', 'Web Browsers only', 'Mobile and Embedded devices', 'Windows Server'], 2),
+      ],
+    ),
+    Course(
+      id: 'c11',
+      title: 'Firebase for Production',
+      description:
+          'Master Cloud Functions, Security Rules, and Advanced Querying for scalable app backends.',
+      category: 'Cloud',
+      price: 45.0,
+      thumbnailUrl: thumb(11),
+      videoUrl: kDemoVideoUrl,
+      durationMinutes: 380,
+      featured: false,
+      quiz: [
+        q('c11q1', 'Where do Security Rules run?',
+            ['On the client device', 'In the Firebase backend', 'On a proxy server', 'In the developer console'], 1),
+        q('c11q2', 'Cloud Functions are written in:',
+            ['Dart', 'Swift', 'JavaScript/TypeScript', 'C++'], 2),
+      ],
+    ),
+    Course(
+      id: 'c12',
+      title: 'Advanced Animation Workshop',
+      description:
+          'From simple tweens to complex particle systems and physics-based motion in Flutter.',
+      category: 'Design',
+      price: 55.0,
+      thumbnailUrl: thumb(12),
+      videoUrl: kDemoVideoUrl,
+      durationMinutes: 280,
+      featured: false,
+      quiz: [
+        q('c12q1', 'Which widget is best for explicit animations?',
+            ['AnimatedContainer', 'AnimatedBuilder', 'Container', 'SizedBox'], 1),
+        q('c12q2', 'What provides the ticking for animations?',
+            ['Timer', 'Stream', 'TickerProvider / vsync', 'Future'], 2),
+      ],
+    ),
   ];
 }

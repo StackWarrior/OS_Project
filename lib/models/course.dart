@@ -64,17 +64,18 @@ class Course {
       };
 
   factory Course.fromJson(Map<String, dynamic> j) => Course(
-        id: j['id'] as String,
-        title: j['title'] as String,
-        description: j['description'] as String,
-        category: j['category'] as String,
-        price: (j['price'] as num).toDouble(),
-        thumbnailUrl: j['thumbnailUrl'] as String,
-        videoUrl: j['videoUrl'] as String,
-        durationMinutes: j['durationMinutes'] as int,
-        quiz: (j['quiz'] as List<dynamic>)
-            .map((e) => QuizQuestion.fromJson(e as Map<String, dynamic>))
-            .toList(),
+        id: j['id']?.toString() ?? '',
+        title: j['title']?.toString() ?? 'Untitled Course',
+        description: j['description']?.toString() ?? '',
+        category: j['category']?.toString() ?? 'General',
+        price: (j['price'] as num?)?.toDouble() ?? 0.0,
+        thumbnailUrl: j['thumbnailUrl']?.toString() ?? '',
+        videoUrl: j['videoUrl']?.toString() ?? '',
+        durationMinutes: (j['durationMinutes'] as num?)?.toInt() ?? 0,
+        quiz: (j['quiz'] as List?)
+                ?.map((e) => QuizQuestion.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            [],
         featured: j['featured'] as bool? ?? false,
       );
 }

@@ -131,6 +131,13 @@ class ProfileScreen extends StatelessWidget {
           ),
           _buildActionCard(
             context,
+            app.locale.languageCode == 'en' ? 'Language' : 'اللغة',
+            app.locale.languageCode == 'en' ? 'English' : 'العربية',
+            Icons.translate,
+            () => app.toggleLanguage(),
+          ),
+          _buildActionCard(
+            context,
             'Payment Methods',
             'Manage cards and payments',
             Icons.credit_card_outlined,

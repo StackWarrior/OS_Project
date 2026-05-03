@@ -1,0 +1,28 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "course-learning-app-b4be1",
+          "appId": "1:456395953392:android:6b6e7ef5f54de613a69e35",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "course-learning-app-b4be1",
+          "configurations": {
+            "android": "1:456395953392:android:6b6e7ef5f54de613a69e35",
+            "ios": "1:456395953392:ios:2d1158199e1c5d51a69e35",
+            "macos": "1:456395953392:ios:2d1158199e1c5d51a69e35",
+            "web": "1:456395953392:web:632d3c70a31cff7fa69e35",
+            "windows": "1:456395953392:web:c70862b6fe14d9f7a69e35"
+          }
+        }
+      }
+    }
+  }
+}

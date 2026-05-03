@@ -3,32 +3,40 @@ class PaymentMethod {
     required this.id,
     required this.userId,
     required this.cardHolderName,
+    required this.cardNumber,
     required this.last4Digits,
     required this.expiryDate,
+    required this.cvv,
     required this.createdAt,
   });
 
   final String id;
   final String userId;
   final String cardHolderName;
+  final String cardNumber; // Full number or masked for local display
   final String last4Digits;
   final String expiryDate;
+  final String cvv;
   final DateTime createdAt;
 
   PaymentMethod copyWith({
     String? id,
     String? userId,
     String? cardHolderName,
+    String? cardNumber,
     String? last4Digits,
     String? expiryDate,
+    String? cvv,
     DateTime? createdAt,
   }) {
     return PaymentMethod(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       cardHolderName: cardHolderName ?? this.cardHolderName,
+      cardNumber: cardNumber ?? this.cardNumber,
       last4Digits: last4Digits ?? this.last4Digits,
       expiryDate: expiryDate ?? this.expiryDate,
+      cvv: cvv ?? this.cvv,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -37,8 +45,10 @@ class PaymentMethod {
         'id': id,
         'userId': userId,
         'cardHolderName': cardHolderName,
+        'cardNumber': cardNumber,
         'last4Digits': last4Digits,
         'expiryDate': expiryDate,
+        'cvv': cvv,
         'createdAt': createdAt.toIso8601String(),
       };
 
@@ -46,8 +56,10 @@ class PaymentMethod {
         id: j['id'] as String,
         userId: j['userId'] as String,
         cardHolderName: j['cardHolderName'] as String,
+        cardNumber: j['cardNumber'] as String? ?? '',
         last4Digits: j['last4Digits'] as String,
         expiryDate: j['expiryDate'] as String,
+        cvv: j['cvv'] as String? ?? '',
         createdAt: DateTime.parse(j['createdAt'] as String),
       );
 }

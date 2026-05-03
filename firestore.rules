@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true ||
+         request.auth.token.email == 'mmomoadel@gmail.com');
+    }
+
+    // Default: Authenticated users can read everything (courses, categories, etc.)
+    match /{document=**} {
+      allow read: if isAuthenticated();
+    }
+
+    // User Profiles
+    match /users/{userId} {
+      // Users can create their own profile.
+      // ONLY the hardcoded admin email can set isAdmin to true during creation.
+      allow create: if isOwner(userId) &&
+        (request.resource.data.isAdmin == false || request.resource.data.email == 'mmomoadel@gmail.com');
+
+      // Users can update their profile.
+      // isAdmin cannot be changed unless the user is already an admin OR they are the hardcoded bootstrap admin.
+      allow update: if isOwner(userId) &&
+        (request.resource.data.isAdmin == resource.data.isAdmin || isAdmin() || resource.data.email == 'mmomoadel@gmail.com');
+    }
+
+    // Courses and Categories
+    match /courses/{courseId} {
+      allow write: if isAdmin();
+    }
+
+    match /categories/{catId} {
+      allow write: if isAdmin();
+    }
+
+    // Payment Methods
+    match /payment_methods/{methodId} {
+      // Owners can only see and manage their own payment methods
+      allow read, write: if isAuthenticated() &&
+        (resource == null || resource.data.userId == request.auth.uid) &&
+        (request.resource == null || request.resource.data.userId == request.auth.uid);
+    }
+
+    // Purchases
+    match /purchases/{purchaseId} {
+      // Authenticated users can create purchases
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Admins can read all purchases, users can read their own
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    }
+  }
+}

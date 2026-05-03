@@ -6,28 +6,34 @@ import 'firebase_options.dart';
 import 'app.dart';
 import 'state/app_state.dart';
 import 'state/shell_controller.dart';
+import 'widgets/error_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  bool firebaseInitialized = false;
   try {
-    // Attempt to initialize Firebase
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    firebaseInitialized = true;
-    debugPrint('Firebase initialized successfully.');
   } catch (e) {
-    debugPrint('Firebase initialization failed: $e');
-    debugPrint('Continuing in Demo Mode without Firebase services.');
+    runApp(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: ErrorScreen(
+          title: 'Firebase Initialization Failed',
+          message: 'The app requires a valid Firebase configuration to function. Please check your setup. Details: $e',
+        ),
+      ),
+    );
+    return;
   }
   
   final appState = AppState();
-  // Initialize AppState with the Firebase status
-  await appState.init(isFirebaseAvailable: firebaseInitialized);
-  
   final shell = ShellController();
+
+  // We don't await init here because AppState handles its own loading state
+  // which is tracked by the UI in App/SplashScreen.
+  appState.init();
 
   runApp(
     MultiProvider(

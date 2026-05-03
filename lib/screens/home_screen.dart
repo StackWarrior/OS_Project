@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
+    final isEn = app.locale.languageCode == 'en';
     final theme = Theme.of(context);
     final featured = app.courses.where((c) => c.featured).toList();
     final categories = app.categories;
@@ -38,14 +39,14 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Hello, ${app.currentUser?.name ?? 'Learner'}',
+                  '${isEn ? 'Hello' : 'مرحباً'}، ${app.currentUser?.name ?? (isEn ? 'Learner' : 'متعلم')}',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'What do you want to learn today?',
+                  isEn ? 'What do you want to learn today?' : 'ماذا تريد أن تتعلم اليوم؟',
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -60,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                   },
                   decoration: InputDecoration(
-                    hintText: 'Search courses, topics, categories…',
+                    hintText: isEn ? 'Search courses, topics, categories…' : 'ابحث عن الدورات، المواضيع، الفئات...',
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: IconButton(
                       onPressed: () {
@@ -77,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   children: [
                     Text(
-                      'Categories',
+                      isEn ? 'Categories' : 'الفئات',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -87,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPressed: () {
                         context.read<ShellController>().goToTab(1);
                       },
-                      child: const Text('Browse all'),
+                      child: Text(isEn ? 'Browse all' : 'عرض الكل'),
                     ),
                   ],
                 ),
@@ -116,14 +117,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   children: [
                     Text(
-                      'Featured courses',
+                      isEn ? 'Featured courses' : 'الدورات المميزة',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const Spacer(),
                     IconButton(
-                      tooltip: 'Open favorites',
+                      tooltip: isEn ? 'Open favorites' : 'فتح المفضلة',
                       onPressed: () => context.read<ShellController>().goToTab(3),
                       icon: const Icon(Icons.favorite_outline),
                     ),

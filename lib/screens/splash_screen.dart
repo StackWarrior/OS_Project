@@ -27,27 +27,47 @@ class _SplashScreenState extends State<SplashScreen>
     _scale = CurvedAnimation(parent: _controller, curve: Curves.easeOutBack);
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
-    _goNext();
   }
 
-  Future<void> _goNext() async {
-    await Future<void>.delayed(const Duration(milliseconds: 1800));
-    if (!mounted) return;
-    final app = context.read<AppState>();
-    while (!app.isReady) {
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _checkStatus();
+  }
+
+  void _checkStatus() {
+    final app = context.watch<AppState>();
+    
+    // Only navigate once we are out of initial/loading states
+    if (app.status == AppStatus.loading || app.status == AppStatus.initial) {
+      return;
+    }
+
+    // Use a small delay to allow animation to show slightly
+    Future.delayed(const Duration(milliseconds: 800), () {
       if (!mounted) return;
-    }
-    if (!mounted) return;
-    if (!app.onboardingComplete) {
-      Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
-      return;
-    }
-    if (app.currentUser == null) {
-      Navigator.of(context).pushReplacementNamed(AppRoutes.login);
-      return;
-    }
-    Navigator.of(context).pushReplacementNamed(AppRoutes.mainShell);
+
+      if (app.status == AppStatus.error) {
+        // App.dart handles the error screen globally if we return the MaterialApp there,
+        // but since SplashScreen is a child of MaterialApp, we might stay here if status is error.
+        // Actually, in app.dart I implemented a global check.
+        return;
+      }
+
+      if (!app.onboardingComplete) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
+        return;
+      }
+
+      if (app.status == AppStatus.unauthenticated) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+        return;
+      }
+
+      if (app.status == AppStatus.authenticated) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.mainShell);
+      }
+    });
   }
 
   @override

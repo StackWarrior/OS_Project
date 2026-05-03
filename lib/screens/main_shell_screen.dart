@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../state/app_state.dart';
 import '../state/shell_controller.dart';
 import 'courses_list_screen.dart';
 import 'favorites_screen.dart';
@@ -24,6 +25,14 @@ class _MainShellScreenState extends State<MainShellScreen> {
     'My courses',
     'Favorites',
     'Profile',
+  ];
+
+  static const _titlesAr = [
+    'الرئيسية',
+    'الدورات',
+    'دوراتي',
+    'المفضلة',
+    'الملف الشخصي',
   ];
 
   late final List<Widget> _pages;
@@ -50,8 +59,15 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_titles[idx]),
+        title: Text(context.watch<AppState>().locale.languageCode == 'en' 
+          ? _titles[idx] 
+          : _titlesAr[idx]),
         actions: [
+          IconButton(
+            tooltip: context.watch<AppState>().locale.languageCode == 'en' ? 'Switch Language' : 'تغيير اللغة',
+            onPressed: () => context.read<AppState>().toggleLanguage(),
+            icon: const Icon(Icons.translate),
+          ),
           IconButton(
             tooltip: 'Search in catalog',
             onPressed: () => shell.goToTab(1),

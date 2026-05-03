@@ -34,17 +34,17 @@ class UserProfile {
       };
 
   factory UserProfile.fromJson(Map<String, dynamic> j) => UserProfile(
-        id: j['id'] as String,
-        name: j['name'] as String,
-        email: j['email'] as String,
-        phone: j['phone'] as String? ?? '',
-        profileImageUrl: j['profileImageUrl'] as String? ?? '',
+        id: j['id']?.toString() ?? '',
+        name: j['name']?.toString() ?? 'User',
+        email: j['email']?.toString() ?? '',
+        phone: j['phone']?.toString() ?? '',
+        profileImageUrl: j['profileImageUrl']?.toString() ?? '',
         dateOfBirth: j['dateOfBirth'] != null
-            ? DateTime.tryParse(j['dateOfBirth'] as String)
+            ? DateTime.tryParse(j['dateOfBirth'].toString())
             : null,
-        role: j['role'] as String? ?? 'user',
+        role: j['role']?.toString() ?? 'user',
         createdAt: j['createdAt'] != null
-            ? DateTime.tryParse(j['createdAt'] as String)
+            ? DateTime.tryParse(j['createdAt'].toString())
             : null,
         isAdmin: j['isAdmin'] as bool? ?? false,
       );

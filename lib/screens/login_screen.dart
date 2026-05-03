@@ -13,42 +13,40 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _email = TextEditingController(text: 'student@example.com');
-  final _password = TextEditingController(text: 'password123');
+  final _email = TextEditingController();
+  final _password = TextEditingController();
   bool _busy = false;
   bool _obscure = true;
 
   Future<void> _submit() async {
+    final isEn = context.read<AppState>().locale.languageCode == 'en';
     if (!_formKey.currentState!.validate()) return;
     setState(() => _busy = true);
-    await Future<void>.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
-    await context.read<AppState>().loginEmail(
-          email: _email.text.trim(),
-          password: _password.text,
+    
+    try {
+      await context.read<AppState>().loginEmail(
+            email: _email.text.trim(),
+            password: _password.text,
+          );
+      
+      if (!mounted) return;
+      // Navigate to Main Shell - Home Tab
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.mainShell,
+        (r) => false,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isEn ? 'Login failed: ${e.toString()}' : 'فشل تسجيل الدخول: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
         );
-    setState(() => _busy = false);
-    if (!mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRoutes.mainShell,
-      (r) => false,
-    );
-  }
-
-  Future<void> _google() async {
-    setState(() => _busy = true);
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    if (!mounted) return;
-    await context.read<AppState>().loginGoogleMock();
-    setState(() => _busy = false);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Signed in with Google (demo flow)')),
-    );
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRoutes.mainShell,
-      (r) => false,
-    );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   @override
@@ -60,14 +58,26 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final app = context.watch<AppState>();
+    final isEn = app.locale.languageCode == 'en';
     final theme = Theme.of(context);
+    
     return Scaffold(
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            onPressed: () => app.toggleLanguage(),
+            icon: const Icon(Icons.translate),
+            tooltip: isEn ? 'Switch Language' : 'تغيير اللغة',
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 440),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(22),
+              padding: const EdgeInsets.symmetric(horizontal: 22),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -75,14 +85,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const SizedBox(height: 8),
                     Text(
-                      'Welcome back',
+                      isEn ? 'Welcome back' : 'مرحباً بعودتك',
                       style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Sign in to continue learning.',
+                      isEn ? 'Sign in to continue learning.' : 'سجل دخولك لمتابعة التعلم.',
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -91,13 +101,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextFormField(
                       controller: _email,
                       keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: Icon(Icons.mail_outline),
+                      decoration: InputDecoration(
+                        labelText: isEn ? 'Email' : 'البريد الإلكتروني',
+                        prefixIcon: const Icon(Icons.mail_outline),
                       ),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Enter email';
-                        if (!v.contains('@')) return 'Enter a valid email';
+                        if (v == null || v.trim().isEmpty) {
+                          return isEn ? 'Enter email' : 'أدخل البريد الإلكتروني';
+                        }
+                        if (!v.contains('@')) {
+                          return isEn ? 'Enter a valid email' : 'أدخل بريد إلكتروني صحيح';
+                        }
                         return null;
                       },
                     ),
@@ -106,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _password,
                       obscureText: _obscure,
                       decoration: InputDecoration(
-                        labelText: 'Password',
+                        labelText: isEn ? 'Password' : 'كلمة المرور',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           onPressed: () => setState(() => _obscure = !_obscure),
@@ -115,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       validator: (v) {
                         if (v == null || v.length < 6) {
-                          return 'At least 6 characters';
+                          return isEn ? 'At least 6 characters' : '6 أحرف على الأقل';
                         }
                         return null;
                       },
@@ -129,32 +143,20 @@ class _LoginScreenState extends State<LoginScreen> {
                               width: 22,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Sign in'),
-                    ),
-                    const SizedBox(height: 14),
-                    OutlinedButton.icon(
-                      onPressed: _busy ? null : _google,
-                      icon: const Icon(Icons.g_mobiledata, size: 28),
-                      label: const Text('Continue with Google'),
+                          : Text(isEn ? 'Sign in' : 'تسجيل الدخول'),
                     ),
                     const SizedBox(height: 18),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('New here?'),
+                        Text(isEn ? 'New here?' : 'جديد هنا؟'),
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pushNamed(AppRoutes.register);
                           },
-                          child: const Text('Create account'),
+                          child: Text(isEn ? 'Create account' : 'إنشاء حساب'),
                         ),
                       ],
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
-                      },
-                      child: const Text('View onboarding again'),
                     ),
                   ],
                 ),

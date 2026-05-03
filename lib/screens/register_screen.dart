@@ -52,11 +52,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _submit() async {
+    final app = context.read<AppState>();
+    final isEn = app.locale.languageCode == 'en';
+    
     if (!_formKey.currentState!.validate()) return;
     
     setState(() => _busy = true);
     try {
-      await context.read<AppState>().register(
+      await app.register(
             name: _name.text.trim(),
             email: _email.text.trim(),
             password: _password.text,
@@ -67,7 +70,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Welcome, ${_name.text.trim()}!')),
+        SnackBar(content: Text(isEn ? 'Welcome, ${_name.text.trim()}!' : 'مرحباً، ${_name.text.trim()}!')),
       );
       
       // Navigate to Main Shell - Profile Tab (index 4)
@@ -79,7 +82,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          SnackBar(content: Text(isEn ? 'Error: ${e.toString()}' : 'خطأ: ${e.toString()}')),
         );
       }
     } finally {
@@ -98,17 +101,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final app = context.watch<AppState>();
+    final isEn = app.locale.languageCode == 'en';
     final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Account'),
+        title: Text(isEn ? 'Create Account' : 'إنشاء حساب'),
+        actions: [
+          IconButton(
+            onPressed: () => app.toggleLanguage(),
+            icon: const Icon(Icons.translate),
+            tooltip: isEn ? 'Switch Language' : 'تغيير اللغة',
+          ),
+        ],
       ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 440),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -143,24 +156,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _name,
                       textCapitalization: TextCapitalization.words,
-                      decoration: const InputDecoration(
-                        labelText: 'Full Name',
-                        prefixIcon: Icon(Icons.person_outline),
+                      decoration: InputDecoration(
+                        labelText: isEn ? 'Full Name' : 'الاسم بالكامل',
+                        prefixIcon: const Icon(Icons.person_outline),
                       ),
                       validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Enter your name' : null,
+                          (v == null || v.trim().isEmpty) 
+                            ? (isEn ? 'Enter your name' : 'أدخل اسمك') 
+                            : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _email,
                       keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: Icon(Icons.mail_outline),
+                      decoration: InputDecoration(
+                        labelText: isEn ? 'Email' : 'البريد الإلكتروني',
+                        prefixIcon: const Icon(Icons.mail_outline),
                       ),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Enter email';
-                        if (!v.contains('@')) return 'Enter a valid email';
+                        if (v == null || v.trim().isEmpty) return isEn ? 'Enter email' : 'أدخل البريد الإلكتروني';
+                        if (!v.contains('@')) return isEn ? 'Enter a valid email' : 'أدخل بريد إلكتروني صحيح';
                         return null;
                       },
                     ),
@@ -168,24 +183,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _phone,
                       keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone Number',
-                        prefixIcon: Icon(Icons.phone_outlined),
+                      decoration: InputDecoration(
+                        labelText: isEn ? 'Phone Number' : 'رقم الهاتف',
+                        prefixIcon: const Icon(Icons.phone_outlined),
                       ),
                       validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Enter phone number' : null,
+                          (v == null || v.trim().isEmpty) 
+                            ? (isEn ? 'Enter phone number' : 'أدخل رقم الهاتف') 
+                            : null,
                     ),
                     const SizedBox(height: 16),
                     InkWell(
                       onTap: () => _selectDate(context),
                       child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'Date of Birth (Optional)',
-                          prefixIcon: Icon(Icons.calendar_today_outlined),
+                        decoration: InputDecoration(
+                          labelText: isEn ? 'Date of Birth (Optional)' : 'تاريخ الميلاد (اختياري)',
+                          prefixIcon: const Icon(Icons.calendar_today_outlined),
                         ),
                         child: Text(
                           _dob == null
-                              ? 'Select Date'
+                              ? (isEn ? 'Select Date' : 'اختر التاريخ')
                               : DateFormat('yyyy-MM-dd').format(_dob!),
                         ),
                       ),
@@ -195,7 +212,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _password,
                       obscureText: _obscure,
                       decoration: InputDecoration(
-                        labelText: 'Password',
+                        labelText: isEn ? 'Password' : 'كلمة المرور',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           onPressed: () => setState(() => _obscure = !_obscure),
@@ -204,7 +221,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       validator: (v) {
                         if (v == null || v.length < 6) {
-                          return 'At least 6 characters';
+                          return isEn ? 'At least 6 characters' : '6 أحرف على الأقل';
                         }
                         return null;
                       },
@@ -218,12 +235,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : const Text('Register'),
+                          : Text(isEn ? 'Register' : 'إنشاء حساب'),
                     ),
                     const SizedBox(height: 12),
                     TextButton(
                       onPressed: _busy ? null : () => Navigator.pop(context),
-                      child: const Text('Already have an account? Login'),
+                      child: Text(isEn ? 'Already have an account? Login' : 'لديك حساب بالفعل؟ سجل دخولك'),
                     ),
                   ],
                 ),

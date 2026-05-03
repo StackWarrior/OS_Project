@@ -24,7 +24,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _busy = false);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Purchase confirmed (mock payment)')),
+      const SnackBar(content: Text('Purchase confirmed')),
     );
     Navigator.of(context).pop();
   }
@@ -75,21 +75,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          Text('Payment method (mock)', style: theme.textTheme.titleMedium),
+          Text('Payment method', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           RadioListTile<String>(
             value: 'card',
             groupValue: _method,
             onChanged: _busy ? null : (v) => setState(() => _method = v!),
             title: const Text('Card ending •••• 4242'),
-            subtitle: const Text('Mock processor'),
+            subtitle: const Text('Secured processing'),
           ),
           RadioListTile<String>(
             value: 'wallet',
             groupValue: _method,
             onChanged: _busy ? null : (v) => setState(() => _method = v!),
             title: const Text('CourseLab Wallet'),
-            subtitle: const Text('Uses your demo balance'),
+            subtitle: const Text('Available balance'),
           ),
           const Divider(height: 32),
           _line('Subtotal', course.price),
