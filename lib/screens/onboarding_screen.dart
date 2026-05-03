@@ -18,7 +18,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   List<_OnboardPageData> _getPages(bool isEn) {
     return [
       _OnboardPageData(
-        icon: Icons.explore_rounded,
+        image: 'assets/icon/1.jpg',
         title: isEn ? 'Explore Clear Learning Paths' : 'استكشف مسارات تعلم واضحة',
         subtitle: isEn 
             ? 'Practical paths that bridge concepts with real-world projects.'
@@ -26,7 +26,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         accent: const Color(0xFF6366F1),
       ),
       _OnboardPageData(
-        icon: Icons.play_circle_fill_rounded,
+        image: 'assets/icon/2.jpg',
         title: isEn ? 'Learn by Watching and Testing' : 'تعلّم بالمشاهدة والاختبار',
         subtitle: isEn
             ? 'Video player with progress tracking and timed quizzes.'
@@ -34,7 +34,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         accent: const Color(0xFF0EA5E9),
       ),
       _OnboardPageData(
-        icon: Icons.workspace_premium_rounded,
+        image: 'assets/icon/3.jpg',
         title: isEn ? 'Your Progress is Always Saved' : 'تقدّمك محفوظ دائمًا',
         subtitle: isEn
             ? 'Resumption, favorites, and my courses — all in one seamless experience.'
@@ -92,7 +92,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 itemBuilder: (context, i) {
                   final p = pages[i];
                   return _OnboardPage(
-                    icon: p.icon,
+                    image: p.image,
                     title: p.title,
                     subtitle: p.subtitle,
                     accent: p.accent,
@@ -146,13 +146,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 }
 
 class _OnboardPageData {
-  final IconData icon;
+  final String image;
   final String title;
   final String subtitle;
   final Color accent;
 
   const _OnboardPageData({
-    required this.icon,
+    required this.image,
     required this.title,
     required this.subtitle,
     required this.accent,
@@ -161,13 +161,13 @@ class _OnboardPageData {
 
 class _OnboardPage extends StatelessWidget {
   const _OnboardPage({
-    required this.icon,
+    required this.image,
     required this.title,
     required this.subtitle,
     required this.accent,
   });
 
-  final IconData icon;
+  final String image;
   final String title;
   final String subtitle;
   final Color accent;
@@ -203,7 +203,7 @@ class _OnboardPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: Icon(icon, size: 96, color: accent),
+                  child: Image.asset(image, fit: BoxFit.cover ),
                 ),
               ),
             ),

@@ -108,6 +108,7 @@ class _CoursesListScreenState extends State<CoursesListScreen> {
               final c = cats[i];
               final selected = _category == c || (_category == 'All' && c == (isEn ? 'All' : 'الكل'));
               return FilterChip(
+                labelPadding: EdgeInsets.all(6),
                 label: Text(c),
                 selected: selected,
                 onSelected: (_) {

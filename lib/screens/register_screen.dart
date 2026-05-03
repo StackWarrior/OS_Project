@@ -26,16 +26,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _busy = false;
   bool _obscure = true;
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      final bytes = await pickedFile.readAsBytes();
-      setState(() {
-        _imageBytes = bytes;
-      });
-    }
-  }
+  // Future<void> _pickImage() async {
+  //   final picker = ImagePicker();
+  //   final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+  //   if (pickedFile != null) {
+  //     final bytes = await pickedFile.readAsBytes();
+  //     setState(() {
+  //       _imageBytes = bytes;
+  //     });
+  //   }
+  // }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -145,7 +145,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               radius: 16,
                               child: IconButton(
                                 icon: const Icon(Icons.camera_alt, size: 14, color: Colors.white),
-                                onPressed: _pickImage,
+                                onPressed: (){},
                               ),
                             ),
                           ),

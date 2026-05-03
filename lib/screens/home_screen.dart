@@ -101,14 +101,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     separatorBuilder: (_, __) => const SizedBox(width: 8),
                     itemBuilder: (context, i) {
                       final c = categories[i];
-                      return FilledButton.tonal(
-                        onPressed: () {
-                          context.read<ShellController>().goToTab(
-                                1,
-                                category: c,
-                              );
-                        },
-                        child: Text(c),
+                      return GestureDetector(
+                        onTap: () {
+                        context.read<ShellController>().goToTab(
+                          1,
+                          category: c,
+                        );
+                      }, child: Container(
+
+                          padding: const EdgeInsets.all( 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12) ,),
+
+
+                          child: Text(c),
+                        ),
                       );
                     },
                   ),
