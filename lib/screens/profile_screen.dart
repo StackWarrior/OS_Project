@@ -15,6 +15,8 @@ class ProfileScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final user = app.currentUser;
 
+    final isEn = app.locale.languageCode == 'en';
+
     if (user == null) {
       return Center(
         child: FilledButton(
@@ -24,7 +26,7 @@ class ProfileScreen extends StatelessWidget {
               (r) => false,
             );
           },
-          child: const Text('Sign in'),
+          child: Text(isEn ? 'Sign in' : 'تسجيل الدخول'),
         ),
       );
     }
@@ -76,13 +78,13 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Analytics Cards
-          Text('Learning Progress', style: theme.textTheme.titleMedium),
+          Text(isEn ? 'Learning Progress' : 'تقدم التعلم', style: theme.textTheme.titleMedium),
           const SizedBox(height: 12),
           Row(
             children: [
               _buildStatCard(
                 context,
-                'Enrolled',
+                isEn ? 'Enrolled' : 'مسجل',
                 '$enrolledCount',
                 Icons.book_outlined,
                 () => context.read<ShellController>().goToTab(2),
@@ -90,7 +92,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(width: 12),
               _buildStatCard(
                 context,
-                'Completed',
+                isEn ? 'Completed' : 'مكتمل',
                 '${app.completedCoursesCount}',
                 Icons.check_circle_outline,
                 null,
@@ -102,15 +104,15 @@ class ProfileScreen extends StatelessWidget {
             children: [
               _buildStatCard(
                 context,
-                'Time Spent',
-                '${app.totalLearningTime.inHours}h ${app.totalLearningTime.inMinutes % 60}m',
+                isEn ? 'Time Spent' : 'الوقت المستغرق',
+                isEn ? '${app.totalLearningTime.inHours}h ${app.totalLearningTime.inMinutes % 60}m' : '${app.totalLearningTime.inHours}س ${app.totalLearningTime.inMinutes % 60}د',
                 Icons.timer_outlined,
                 null,
               ),
               const SizedBox(width: 12),
               _buildStatCard(
                 context,
-                'Avg. Progress',
+                isEn ? 'Avg. Progress' : 'متوسط التقدم',
                 '${(app.overallProgress * 100).toInt()}%',
                 Icons.analytics_outlined,
                 null,
@@ -119,34 +121,34 @@ class ProfileScreen extends StatelessWidget {
           ),
 
           const SizedBox(height: 24),
-          Text('Account', style: theme.textTheme.titleMedium),
+          Text(isEn ? 'Account' : 'الحساب', style: theme.textTheme.titleMedium),
           const SizedBox(height: 12),
 
           _buildActionCard(
             context,
-            'Edit Profile',
-            'Update your personal info',
+            isEn ? 'Edit Profile' : 'تعديل الملف الشخصي',
+            isEn ? 'Update your personal info' : 'تحديث معلوماتك الشخصية',
             Icons.person_outline,
             () => Navigator.pushNamed(context, AppRoutes.editProfile),
           ),
           _buildActionCard(
             context,
-            app.locale.languageCode == 'en' ? 'Language' : 'اللغة',
-            app.locale.languageCode == 'en' ? 'English' : 'العربية',
+            isEn ? 'Language' : 'اللغة',
+            isEn ? 'English' : 'العربية',
             Icons.translate,
             () => app.toggleLanguage(),
           ),
           _buildActionCard(
             context,
-            'Payment Methods',
-            'Manage cards and payments',
+            isEn ? 'Payment Methods' : 'طرق الدفع',
+            isEn ? 'Manage cards and payments' : 'إدارة البطاقات والمدفوعات',
             Icons.credit_card_outlined,
             () => Navigator.pushNamed(context, AppRoutes.paymentMethods),
           ),
           _buildActionCard(
             context,
-            'Favorites',
-            '${app.favoriteCourseIds.length} courses saved',
+            isEn ? 'Favorites' : 'المفضلة',
+            isEn ? '${app.favoriteCourseIds.length} courses saved' : 'تم حفظ ${app.favoriteCourseIds.length} دورة',
             Icons.favorite_border,
             () => context.read<ShellController>().goToTab(3),
           ),
@@ -155,8 +157,8 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 12),
             ListTile(
               leading: const Icon(Icons.cake_outlined),
-              title: const Text('Birthday'),
-              subtitle: Text(DateFormat('MMMM dd, yyyy').format(user.dateOfBirth!)),
+              title: Text(isEn ? 'Birthday' : 'تاريخ الميلاد'),
+              subtitle: Text(DateFormat(isEn ? 'MMMM dd, yyyy' : 'dd MMMM yyyy', isEn ? 'en' : 'ar').format(user.dateOfBirth!)),
             ),
           ],
 
@@ -167,7 +169,7 @@ class ProfileScreen extends StatelessWidget {
                 Navigator.of(context).pushNamed(AppRoutes.admin);
               },
               icon: const Icon(Icons.admin_panel_settings_outlined),
-              label: const Text('Admin Dashboard'),
+              label: Text(isEn ? 'Admin Dashboard' : 'لوحة تحكم المسؤول'),
             ),
             const SizedBox(height: 12),
           ],
@@ -181,7 +183,7 @@ class ProfileScreen extends StatelessWidget {
               );
             },
             icon: const Icon(Icons.logout),
-            label: const Text('Sign Out'),
+            label: Text(isEn ? 'Sign Out' : 'تسجيل الخروج'),
             style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
           ),
         ],

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../models/course.dart';
+import '../state/app_state.dart';
 
 class CourseCard extends StatelessWidget {
   const CourseCard({
@@ -17,6 +19,8 @@ class CourseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isEn = context.watch<AppState>().locale.languageCode == 'en';
+
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -47,11 +51,11 @@ class CourseCard extends StatelessWidget {
                           color: Colors.black.withValues(alpha: 0.65),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           child: Text(
-                            'Featured',
-                            style: TextStyle(color: Colors.white, fontSize: 12),
+                            isEn ? 'Featured' : 'مميز',
+                            style: const TextStyle(color: Colors.white, fontSize: 12),
                           ),
                         ),
                       ),
@@ -83,7 +87,9 @@ class CourseCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '\$${course.price.toStringAsFixed(2)} · ${course.durationMinutes} min',
+                          isEn 
+                              ? '\$${course.price.toStringAsFixed(2)} · ${course.durationMinutes} min'
+                              : '\$${course.price.toStringAsFixed(2)} · ${course.durationMinutes} دقيقة',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -91,7 +97,7 @@ class CourseCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  ?trailing,
+                  if (trailing != null) trailing!,
                 ],
               ),
             ),

@@ -49,6 +49,66 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _loginGoogle() async {
+    final isEn = context.read<AppState>().locale.languageCode == 'en';
+    setState(() => _busy = true);
+    try {
+      await context.read<AppState>().loginGoogle();
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.mainShell,
+        (r) => false,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isEn ? 'Google Login failed: ${e.toString()}' : 'فشل تسجيل الدخول بجوجل: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _forgotPassword() async {
+    final isEn = context.read<AppState>().locale.languageCode == 'en';
+    final email = _email.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isEn ? 'Please enter a valid email first' : 'يرجى إدخال بريد إلكتروني صحيح أولاً'),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await context.read<AppState>().sendPasswordResetEmail(email);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isEn 
+              ? 'Password reset email sent to $email' 
+              : 'تم إرسال رابط إعادة تعيين كلمة المرور إلى $email'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isEn ? 'Error: ${e.toString()}' : 'خطأ: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     _email.dispose();
@@ -134,18 +194,28 @@ class _LoginScreenState extends State<LoginScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 22),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: isEn ? Alignment.centerRight : Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: _busy ? null : _forgotPassword,
+                        child: Text(isEn ? 'Forgot Password?' : 'نسيت كلمة المرور؟'),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     FilledButton(
                       onPressed: _busy ? null : _submit,
                       child: _busy
                           ? const SizedBox(
                               height: 22,
                               width: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
                           : Text(isEn ? 'Sign in' : 'تسجيل الدخول'),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 16),
+
+                    const SizedBox(height: 5),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

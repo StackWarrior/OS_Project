@@ -13,12 +13,13 @@ class QuizResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
+    final isEn = app.locale.languageCode == 'en';
     final course = app.courseById(result.courseId);
     final theme = Theme.of(context);
     final pct = result.total == 0 ? 0 : (100 * result.correct / result.total).round();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Quiz results')),
+      appBar: AppBar(title: Text(isEn ? 'Quiz results' : 'نتائج الاختبار')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -60,20 +61,24 @@ class QuizResultScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Score',
+                          isEn ? 'Score' : 'النتيجة',
                           style: theme.textTheme.labelLarge?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                         Text(
-                          '${result.correct} / ${result.total} correct',
+                          isEn
+                              ? '${result.correct} / ${result.total} correct'
+                              : '${result.correct} / ${result.total} إجابة صحيحة',
                           style: theme.textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.w900,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          pct >= 70 ? 'Great job — keep building momentum.' : 'Review the lesson and try again anytime.',
+                          isEn
+                              ? (pct >= 70 ? 'Great job — keep building momentum.' : 'Review the lesson and try again anytime.')
+                              : (pct >= 70 ? 'عمل رائع - استمر في التقدم.' : 'راجع الدرس وحاول مرة أخرى في أي وقت.'),
                           style: theme.textTheme.bodyMedium,
                         ),
                       ],
@@ -84,10 +89,10 @@ class QuizResultScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          Text('Review', style: theme.textTheme.titleMedium),
+          Text(isEn ? 'Review' : 'مراجعة', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           if (course == null)
-            const Text('Course unavailable.')
+            Text(isEn ? 'Course unavailable.' : 'الدورة غير متوفرة.')
           else
             ...List.generate(course.quiz.length, (i) {
               final q = course.quiz[i];
@@ -103,8 +108,8 @@ class QuizResultScreen extends StatelessWidget {
                   title: Text(q.prompt, maxLines: 3, overflow: TextOverflow.ellipsis),
                   subtitle: Text(
                     picked < 0
-                        ? 'No answer (timeout)'
-                        : 'Your answer: ${q.options[picked]}',
+                        ? (isEn ? 'No answer (timeout)' : 'لا توجد إجابة (انتهى الوقت)')
+                        : (isEn ? 'Your answer: ${q.options[picked]}' : 'إجابتك: ${q.options[picked]}'),
                   ),
                 ),
               );
@@ -113,7 +118,7 @@ class QuizResultScreen extends StatelessWidget {
           FilledButton.icon(
             onPressed: course == null ? null : () => Navigator.of(context).pop(),
             icon: const Icon(Icons.menu_book_outlined),
-            label: const Text('Back to course'),
+            label: Text(isEn ? 'Back to course' : 'العودة للدورة'),
           ),
           const SizedBox(height: 10),
           OutlinedButton.icon(
@@ -124,7 +129,7 @@ class QuizResultScreen extends StatelessWidget {
               );
             },
             icon: const Icon(Icons.replay),
-            label: const Text('Retry quiz'),
+            label: Text(isEn ? 'Retry quiz' : 'إعادة الاختبار'),
           ),
         ],
       ),

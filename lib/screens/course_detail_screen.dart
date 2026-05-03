@@ -12,21 +12,22 @@ class CourseDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
+    final isEn = app.locale.languageCode == 'en';
     final course = app.courseById(courseId);
     final theme = Theme.of(context);
 
     if (course == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Course')),
+        appBar: AppBar(title: Text(isEn ? 'Course' : 'الدورة')),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Course not found.'),
+              Text(isEn ? 'Course not found.' : 'لم يتم العثور على الدورة.'),
               const SizedBox(height: 12),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Go back'),
+                child: Text(isEn ? 'Go back' : 'العودة'),
               ),
             ],
           ),
@@ -75,7 +76,7 @@ class CourseDetailScreen extends StatelessWidget {
             ),
             actions: [
               IconButton(
-                tooltip: 'Toggle favorite',
+                tooltip: isEn ? 'Toggle favorite' : 'تبديل المفضلة',
                 onPressed: () async {
                   await app.toggleFavorite(course.id);
                   if (context.mounted) {
@@ -83,8 +84,8 @@ class CourseDetailScreen extends StatelessWidget {
                       SnackBar(
                         content: Text(
                           app.isFavorite(course.id)
-                              ? 'Saved to favorites'
-                              : 'Removed from favorites',
+                              ? (isEn ? 'Saved to favorites' : 'تم الحفظ في المفضلة')
+                              : (isEn ? 'Removed from favorites' : 'تمت الإزالة من المفضلة'),
                         ),
                       ),
                     );
@@ -109,17 +110,17 @@ class CourseDetailScreen extends StatelessWidget {
                       Chip(label: Text(course.category)),
                       Chip(
                         avatar: const Icon(Icons.timer, size: 18),
-                        label: Text('${course.durationMinutes} min'),
+                        label: Text(isEn ? '${course.durationMinutes} min' : '${course.durationMinutes} دقيقة'),
                       ),
                       Chip(
                         avatar: const Icon(Icons.quiz, size: 18),
-                        label: Text('${course.quiz.length} quiz questions'),
+                        label: Text(isEn ? '${course.quiz.length} quiz questions' : '${course.quiz.length} أسئلة اختبار'),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'About this course',
+                    isEn ? 'About this course' : 'حول هذه الدورة',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
@@ -148,7 +149,7 @@ class CourseDetailScreen extends StatelessWidget {
                             );
                           },
                           icon: const Icon(Icons.play_arrow_rounded),
-                          label: const Text('Continue'),
+                          label: Text(isEn ? 'Continue' : 'متابعة'),
                         ),
                     ],
                   ),
@@ -162,7 +163,7 @@ class CourseDetailScreen extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.shopping_cart_checkout),
-                      label: const Text('Enroll / Buy'),
+                      label: Text(isEn ? 'Enroll / Buy' : 'تسجيل / شراء'),
                     )
                   else ...[
                     FilledButton.icon(
@@ -173,7 +174,7 @@ class CourseDetailScreen extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.play_circle),
-                      label: const Text('Watch lessons'),
+                      label: Text(isEn ? 'Watch lessons' : 'مشاهدة الدروس'),
                     ),
                     const SizedBox(height: 10),
                     OutlinedButton.icon(
@@ -184,7 +185,7 @@ class CourseDetailScreen extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.fact_check),
-                      label: const Text('Take quiz'),
+                      label: Text(isEn ? 'Take quiz' : 'أداء الاختبار'),
                     ),
                   ],
                 ],

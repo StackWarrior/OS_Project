@@ -63,6 +63,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
+    final isEn = context.read<AppState>().locale.languageCode == 'en';
 
     setState(() => _isLoading = true);
     try {
@@ -74,14 +75,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully!')),
+          SnackBar(
+            content: Text(
+              isEn ? 'Profile updated successfully!' : 'تم تحديث الملف الشخصي بنجاح!',
+            ),
+          ),
         );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          SnackBar(
+            content: Text(
+              isEn ? 'Error: ${e.toString()}' : 'خطأ: ${e.toString()}',
+            ),
+          ),
         );
       }
     } finally {
@@ -91,12 +100,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<AppState>().currentUser;
+    final app = context.watch<AppState>();
+    final isEn = app.locale.languageCode == 'en';
+    final user = app.currentUser;
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: Text(isEn ? 'Edit Profile' : 'تعديل الملف الشخصي'),
       ),
       body: Stack(
         children: [
@@ -140,45 +151,47 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   const SizedBox(height: 32),
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Full Name',
-                      prefixIcon: Icon(Icons.person),
+                    decoration: InputDecoration(
+                      labelText: isEn ? 'Full Name' : 'الاسم الكامل',
+                      prefixIcon: const Icon(Icons.person),
                     ),
-                    validator: (value) =>
-                        value == null || value.isEmpty ? 'Enter name' : null,
+                    validator: (value) => value == null || value.isEmpty
+                        ? (isEn ? 'Enter name' : 'أدخل الاسم')
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     initialValue: user?.email,
                     enabled: false,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email),
-                      helperText: 'Email cannot be changed',
+                    decoration: InputDecoration(
+                      labelText: isEn ? 'Email' : 'البريد الإلكتروني',
+                      prefixIcon: const Icon(Icons.email),
+                      helperText: isEn ? 'Email cannot be changed' : 'لا يمكن تغيير البريد الإلكتروني',
                     ),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone Number',
-                      prefixIcon: Icon(Icons.phone),
+                    decoration: InputDecoration(
+                      labelText: isEn ? 'Phone Number' : 'رقم الهاتف',
+                      prefixIcon: const Icon(Icons.phone),
                     ),
                     keyboardType: TextInputType.phone,
-                    validator: (value) =>
-                        value == null || value.isEmpty ? 'Enter phone' : null,
+                    validator: (value) => value == null || value.isEmpty
+                        ? (isEn ? 'Enter phone' : 'أدخل الهاتف')
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   InkWell(
                     onTap: () => _selectDate(context),
                     child: InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'Date of Birth',
-                        prefixIcon: Icon(Icons.calendar_today),
+                      decoration: InputDecoration(
+                        labelText: isEn ? 'Date of Birth' : 'تاريخ الميلاد',
+                        prefixIcon: const Icon(Icons.calendar_today),
                       ),
                       child: Text(
                         _selectedDate == null
-                            ? 'Select Date'
+                            ? (isEn ? 'Select Date' : 'اختر التاريخ')
                             : DateFormat('yyyy-MM-dd').format(_selectedDate!),
                       ),
                     ),
@@ -189,7 +202,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     height: 50,
                     child: FilledButton(
                       onPressed: _isLoading ? null : _saveProfile,
-                      child: const Text('Save Changes'),
+                      child: Text(isEn ? 'Save Changes' : 'حفظ التغييرات'),
                     ),
                   ),
                 ],

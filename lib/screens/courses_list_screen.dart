@@ -55,8 +55,9 @@ class _CoursesListScreenState extends State<CoursesListScreen> {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
+    final isEn = app.locale.languageCode == 'en';
     final theme = Theme.of(context);
-    final cats = ['All', ...app.categories];
+    final cats = [isEn ? 'All' : 'الكل', ...app.categories];
 
     final total = app.countCourses(
       categoryQuery: _category,
@@ -78,7 +79,7 @@ class _CoursesListScreenState extends State<CoursesListScreen> {
           child: TextField(
             controller: _search,
             decoration: InputDecoration(
-              hintText: 'Filter this list…',
+              hintText: isEn ? 'Filter this list…' : 'تصفية هذه القائمة...',
               prefixIcon: const Icon(Icons.filter_alt_outlined),
               suffixIcon: IconButton(
                 onPressed: () {
@@ -105,13 +106,13 @@ class _CoursesListScreenState extends State<CoursesListScreen> {
             separatorBuilder: (_, __) => const SizedBox(width: 8),
             itemBuilder: (context, i) {
               final c = cats[i];
-              final selected = _category == c;
+              final selected = _category == c || (_category == 'All' && c == (isEn ? 'All' : 'الكل'));
               return FilterChip(
                 label: Text(c),
                 selected: selected,
                 onSelected: (_) {
                   setState(() {
-                    _category = c;
+                    _category = (c == 'الكل' || c == 'All') ? 'All' : c;
                     _loaded = _pageSize;
                   });
                 },
@@ -124,7 +125,7 @@ class _CoursesListScreenState extends State<CoursesListScreen> {
           child: Row(
             children: [
               Text(
-                '${page.length} of $total courses',
+                isEn ? '${page.length} of $total courses' : '${page.length} من $total دورة',
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -137,7 +138,7 @@ class _CoursesListScreenState extends State<CoursesListScreen> {
                       _loaded = (_loaded + _pageSize).clamp(0, total).toInt();
                     });
                   },
-                  child: const Text('Load more'),
+                  child: Text(isEn ? 'Load more' : 'تحميل المزيد'),
                 ),
             ],
           ),

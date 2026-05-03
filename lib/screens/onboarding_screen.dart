@@ -15,29 +15,34 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _index = 0;
 
-  final _pages = const [
-    _OnboardPage(
-      icon: Icons.explore_rounded,
-      title: 'استكشف مسارات تعلم واضحة',
-      subtitle:
-          'مسارات عملية تربط المفاهيم بالمشاريع الحقيقية — واجهة جميلة ومريحة للعين.',
-      accent: Color(0xFF6366F1),
-    ),
-    _OnboardPage(
-      icon: Icons.play_circle_fill_rounded,
-      title: 'تعلّم بالمشاهدة والاختبار',
-      subtitle:
-          'مشغّل فيديو مع تتبّع التقدّم، واختبارات موقوتة تثبت ما تعلمته.',
-      accent: Color(0xFF0EA5E9),
-    ),
-    _OnboardPage(
-      icon: Icons.workspace_premium_rounded,
-      title: 'تقدّمك محفوظ دائمًا',
-      subtitle:
-          'استئناف التشغيل، المفضلة، ودوراتي — كل شيء متصل بتجربة واحدة سلسة.',
-      accent: Color(0xFF22C55E),
-    ),
-  ];
+  List<_OnboardPageData> _getPages(bool isEn) {
+    return [
+      _OnboardPageData(
+        icon: Icons.explore_rounded,
+        title: isEn ? 'Explore Clear Learning Paths' : 'استكشف مسارات تعلم واضحة',
+        subtitle: isEn 
+            ? 'Practical paths that bridge concepts with real-world projects.'
+            : 'مسارات عملية تربط المفاهيم بالمشاريع الحقيقية — واجهة جميلة ومريحة للعين.',
+        accent: const Color(0xFF6366F1),
+      ),
+      _OnboardPageData(
+        icon: Icons.play_circle_fill_rounded,
+        title: isEn ? 'Learn by Watching and Testing' : 'تعلّم بالمشاهدة والاختبار',
+        subtitle: isEn
+            ? 'Video player with progress tracking and timed quizzes.'
+            : 'مشغّل فيديو مع تتبّع التقدّم، واختبارات موقوتة تثبت ما تعلمته.',
+        accent: const Color(0xFF0EA5E9),
+      ),
+      _OnboardPageData(
+        icon: Icons.workspace_premium_rounded,
+        title: isEn ? 'Your Progress is Always Saved' : 'تقدّمك محفوظ دائمًا',
+        subtitle: isEn
+            ? 'Resumption, favorites, and my courses — all in one seamless experience.'
+            : 'استئناف التشغيل، المفضلة، ودوراتي — كل شيء متصل بتجربة واحدة سلسة.',
+        accent: const Color(0xFF22C55E),
+      ),
+    ];
+  }
 
   Future<void> _finish() async {
     await context.read<AppState>().completeOnboarding();
@@ -53,24 +58,46 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final app = context.watch<AppState>();
+    final isEn = app.locale.languageCode == 'en';
     final theme = Theme.of(context);
+    final pages = _getPages(isEn);
+
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: _finish,
-                child: const Text('تخطي / Skip'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    onPressed: () => app.toggleLanguage(),
+                    icon: const Icon(Icons.translate),
+                    tooltip: isEn ? 'Switch Language' : 'تغيير اللغة',
+                  ),
+                  TextButton(
+                    onPressed: _finish,
+                    child: Text(isEn ? 'Skip' : 'تخطي'),
+                  ),
+                ],
               ),
             ),
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                itemCount: _pages.length,
+                itemCount: pages.length,
                 onPageChanged: (i) => setState(() => _index = i),
-                itemBuilder: (context, i) => _pages[i],
+                itemBuilder: (context, i) {
+                  final p = pages[i];
+                  return _OnboardPage(
+                    icon: p.icon,
+                    title: p.title,
+                    subtitle: p.subtitle,
+                    accent: p.accent,
+                  );
+                },
               ),
             ),
             Padding(
@@ -79,7 +106,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   Row(
                     children: List.generate(
-                      _pages.length,
+                      pages.length,
                       (i) => AnimatedContainer(
                         duration: const Duration(milliseconds: 250),
                         margin: const EdgeInsets.only(right: 6),
@@ -97,7 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const Spacer(),
                   FilledButton(
                     onPressed: () {
-                      if (_index < _pages.length - 1) {
+                      if (_index < pages.length - 1) {
                         _pageController.nextPage(
                           duration: const Duration(milliseconds: 350),
                           curve: Curves.easeOutCubic,
@@ -106,7 +133,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         _finish();
                       }
                     },
-                    child: Text(_index < _pages.length - 1 ? 'Next' : 'Get started'),
+                    child: Text(_index < pages.length - 1 ? (isEn ? 'Next' : 'التالي') : (isEn ? 'Get started' : 'ابدأ الآن')),
                   ),
                 ],
               ),
@@ -116,6 +143,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
+}
+
+class _OnboardPageData {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color accent;
+
+  const _OnboardPageData({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.accent,
+  });
 }
 
 class _OnboardPage extends StatelessWidget {

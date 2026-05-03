@@ -56,20 +56,19 @@ class _MainShellScreenState extends State<MainShellScreen> {
   Widget build(BuildContext context) {
     final shell = context.watch<ShellController>();
     final idx = shell.index.clamp(0, _pages.length - 1);
+    final isEn = context.watch<AppState>().locale.languageCode == 'en';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.watch<AppState>().locale.languageCode == 'en' 
-          ? _titles[idx] 
-          : _titlesAr[idx]),
+        title: Text(isEn ? _titles[idx] : _titlesAr[idx]),
         actions: [
           IconButton(
-            tooltip: context.watch<AppState>().locale.languageCode == 'en' ? 'Switch Language' : 'تغيير اللغة',
+            tooltip: isEn ? 'Switch Language' : 'تغيير اللغة',
             onPressed: () => context.read<AppState>().toggleLanguage(),
             icon: const Icon(Icons.translate),
           ),
           IconButton(
-            tooltip: 'Search in catalog',
+            tooltip: isEn ? 'Search' : 'بحث',
             onPressed: () => shell.goToTab(1),
             icon: const Icon(Icons.search),
           ),
@@ -82,31 +81,31 @@ class _MainShellScreenState extends State<MainShellScreen> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: idx,
         onDestinationSelected: shell.goToTab,
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home),
+            label: isEn ? 'Home' : 'الرئيسية',
           ),
           NavigationDestination(
-            icon: Icon(Icons.list_alt_outlined),
-            selectedIcon: Icon(Icons.list_alt),
-            label: 'Courses',
+            icon: const Icon(Icons.list_alt_outlined),
+            selectedIcon: const Icon(Icons.list_alt),
+            label: isEn ? 'Courses' : 'الدورات',
           ),
           NavigationDestination(
-            icon: Icon(Icons.play_circle_outline),
-            selectedIcon: Icon(Icons.play_circle),
-            label: 'Learn',
+            icon: const Icon(Icons.play_circle_outline),
+            selectedIcon: const Icon(Icons.play_circle),
+            label: isEn ? 'Learn' : 'تعلم',
           ),
           NavigationDestination(
-            icon: Icon(Icons.favorite_outline),
-            selectedIcon: Icon(Icons.favorite),
-            label: 'Saved',
+            icon: const Icon(Icons.favorite_outline),
+            selectedIcon: const Icon(Icons.favorite),
+            label: isEn ? 'Saved' : 'المفضلة',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
+            icon: const Icon(Icons.person_outline),
+            selectedIcon: const Icon(Icons.person),
+            label: isEn ? 'Profile' : 'الملف الشخصي',
           ),
         ],
       ),

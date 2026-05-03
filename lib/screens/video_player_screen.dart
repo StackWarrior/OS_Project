@@ -116,6 +116,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
+    final isEn = app.locale.languageCode == 'en';
     final course = app.courseById(widget.courseId);
     final theme = Theme.of(context);
 
@@ -128,20 +129,20 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(course?.title ?? 'Lesson'),
+          title: Text(course?.title ?? (isEn ? 'Lesson' : 'درس')),
           actions: [
             TextButton(
               onPressed: () async {
                 await _saveProgressNow();
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Progress saved. You can resume anytime.')),
+                  SnackBar(content: Text(isEn ? 'Progress saved. You can resume anytime.' : 'تم حفظ التقدم. يمكنك المتابعة في أي وقت.')),
                 );
               },
-              child: const Text('Save'),
+              child: Text(isEn ? 'Save' : 'حفظ'),
             ),
             IconButton(
-              tooltip: 'Take quiz',
+              tooltip: isEn ? 'Take quiz' : 'أداء الاختبار',
               onPressed: course == null
                   ? null
                   : () async {
@@ -171,7 +172,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                           const SizedBox(height: 16),
                           FilledButton(
                             onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Go back'),
+                            child: Text(isEn ? 'Go back' : 'العودة'),
                           ),
                         ],
                       ),
@@ -184,9 +185,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                           tileColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
                           leading: const Icon(Icons.history),
                           title: Text(
-                            'Resume: ${Duration(seconds: app.progressFor(course.id)).toString().split('.').first}',
+                            isEn 
+                              ? 'Resume: ${Duration(seconds: app.progressFor(course.id)).toString().split('.').first}'
+                              : 'استكمال: ${Duration(seconds: app.progressFor(course.id)).toString().split('.').first}',
                           ),
-                          subtitle: const Text('Progress is saved automatically every few seconds.'),
+                          subtitle: Text(isEn 
+                            ? 'Progress is saved automatically every few seconds.'
+                            : 'يتم حفظ التقدم تلقائيًا كل بضع ثوانٍ.'),
                         ),
                       Expanded(
                         child: Center(

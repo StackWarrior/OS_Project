@@ -98,16 +98,17 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
+    final isEn = app.locale.languageCode == 'en';
     final course = app.courseById(widget.courseId);
     final theme = Theme.of(context);
 
     if (course == null || course.quiz.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Quiz')),
+        appBar: AppBar(title: Text(isEn ? 'Quiz' : 'اختبار')),
         body: Center(
           child: FilledButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Go back'),
+            child: Text(isEn ? 'Go back' : 'العودة'),
           ),
         ),
       );
@@ -117,13 +118,13 @@ class _QuizScreenState extends State<QuizScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Quiz · ${_qIndex + 1}/${course.quiz.length}'),
+        title: Text(isEn ? 'Quiz · ${_qIndex + 1}/${course.quiz.length}' : 'اختبار · ${_qIndex + 1}/${course.quiz.length}'),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Chip(
               avatar: const Icon(Icons.timer, size: 18),
-              label: Text('$_secondsLeft s'),
+              label: Text(isEn ? '$_secondsLeft s' : '$_secondsLeft ث'),
             ),
           ),
         ],
@@ -163,20 +164,20 @@ class _QuizScreenState extends State<QuizScreen> {
                     });
                     _startTimer();
                   },
-                  child: const Text('Previous'),
+                  child: Text(isEn ? 'Previous' : 'السابق'),
                 ),
               const Spacer(),
               FilledButton(
                 onPressed: () {
                   if (_selected == null && _answers[_qIndex] < 0) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Select an answer or wait for timeout')),
+                      SnackBar(content: Text(isEn ? 'Select an answer or wait for timeout' : 'اختر إجابة أو انتظر انتهاء الوقت')),
                     );
                     return;
                   }
                   _advance();
                 },
-                child: Text(_qIndex >= course.quiz.length - 1 ? 'Finish' : 'Next'),
+                child: Text(_qIndex >= course.quiz.length - 1 ? (isEn ? 'Finish' : 'إنهاء') : (isEn ? 'Next' : 'التالي')),
               ),
             ],
           ),

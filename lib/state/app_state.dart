@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/course.dart';
@@ -262,6 +263,36 @@ class AppState extends ChangeNotifier {
     required String password,
   }) async {
     await _auth.signInWithEmailAndPassword(email: email, password: password);
+  }
+
+  Future<void> loginGoogle() async {
+    _status = AppStatus.loading;
+    notifyListeners();
+    try {
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        _status = AppStatus.unauthenticated;
+        notifyListeners();
+        return;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await _auth.signInWithCredential(credential);
+    } catch (e) {
+      _status = AppStatus.error;
+      _errorMessage = 'Google Login failed: $e';
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
   }
 
   Future<void> logout() async {

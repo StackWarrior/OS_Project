@@ -12,6 +12,7 @@ class MyCoursesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
+    final isEn = app.locale.languageCode == 'en';
     final theme = Theme.of(context);
     final owned = app.courses.where((c) => app.isPurchased(c.id)).toList();
 
@@ -25,12 +26,14 @@ class MyCoursesScreen extends StatelessWidget {
               Icon(Icons.school_outlined, size: 56, color: theme.colorScheme.outline),
               const SizedBox(height: 12),
               Text(
-                'No purchases yet',
+                isEn ? 'No purchases yet' : 'لا توجد مشتريات بعد',
                 style: theme.textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
               Text(
-                'Browse the catalog and enroll to see your library here.',
+                isEn 
+                  ? 'Browse the catalog and enroll to see your library here.'
+                  : 'تصفح الكتالوج وقم بالتسجيل لرؤية مكتبتك هنا.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
@@ -39,7 +42,7 @@ class MyCoursesScreen extends StatelessWidget {
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => context.read<ShellController>().goToTab(1),
-                child: const Text('Browse courses'),
+                child: Text(isEn ? 'Browse courses' : 'تصفح الدورات'),
               ),
             ],
           ),
@@ -74,13 +77,15 @@ class MyCoursesScreen extends StatelessWidget {
                     arguments: course.id,
                   );
                 },
-                child: Text(hasProgress ? 'Continue' : 'Start'),
+                child: Text(isEn ? (hasProgress ? 'Continue' : 'Start') : (hasProgress ? 'متابعة' : 'بدء')),
               ),
               if (hasProgress)
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
                   child: Text(
-                    '${Duration(seconds: sec).toString().split('.').first} watched',
+                    isEn 
+                      ? '${Duration(seconds: sec).toString().split('.').first} watched'
+                      : 'تمت مشاهدة ${Duration(seconds: sec).toString().split('.').first}',
                     style: theme.textTheme.labelSmall,
                   ),
                 ),

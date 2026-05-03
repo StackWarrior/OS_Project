@@ -17,6 +17,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _busy = false;
 
   Future<void> _confirm() async {
+    final isEn = context.read<AppState>().locale.languageCode == 'en';
     setState(() => _busy = true);
     await Future<void>.delayed(const Duration(milliseconds: 900));
     if (!mounted) return;
@@ -24,7 +25,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _busy = false);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Purchase confirmed')),
+      SnackBar(content: Text(isEn ? 'Purchase confirmed' : 'تم تأكيد الشراء')),
     );
     Navigator.of(context).pop();
   }
@@ -32,16 +33,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
+    final isEn = app.locale.languageCode == 'en';
     final course = app.courseById(widget.courseId);
     final theme = Theme.of(context);
 
     if (course == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Checkout')),
+        appBar: AppBar(title: Text(isEn ? 'Checkout' : 'الدفع')),
         body: Center(
           child: FilledButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Back'),
+            child: Text(isEn ? 'Back' : 'رجوع'),
           ),
         ),
       );
@@ -51,11 +53,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final total = course.price + tax;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout')),
+      appBar: AppBar(title: Text(isEn ? 'Checkout' : 'الدفع')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          Text('Order summary', style: theme.textTheme.titleLarge),
+          Text(isEn ? 'Order summary' : 'ملخص الطلب', style: theme.textTheme.titleLarge),
           const SizedBox(height: 12),
           Card(
             child: ListTile(
@@ -75,27 +77,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          Text('Payment method', style: theme.textTheme.titleMedium),
+          Text(isEn ? 'Payment method' : 'طريقة الدفع', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           RadioListTile<String>(
             value: 'card',
             groupValue: _method,
             onChanged: _busy ? null : (v) => setState(() => _method = v!),
-            title: const Text('Card ending •••• 4242'),
-            subtitle: const Text('Secured processing'),
+            title: Text(isEn ? 'Card ending •••• 4242' : 'بطاقة تنتهي بـ •••• 4242'),
+            subtitle: Text(isEn ? 'Secured processing' : 'معالجة آمنة'),
           ),
           RadioListTile<String>(
             value: 'wallet',
             groupValue: _method,
             onChanged: _busy ? null : (v) => setState(() => _method = v!),
-            title: const Text('CourseLab Wallet'),
-            subtitle: const Text('Available balance'),
+            title: Text(isEn ? 'CourseLab Wallet' : 'محفظة كورس لاب'),
+            subtitle: Text(isEn ? 'Available balance' : 'الرصيد المتاح'),
           ),
           const Divider(height: 32),
-          _line('Subtotal', course.price),
-          _line('Estimated tax', tax),
+          _line(isEn ? 'Subtotal' : 'المجموع الفرعي', course.price),
+          _line(isEn ? 'Estimated tax' : 'الضريبة المقدرة', tax),
           const SizedBox(height: 8),
-          _line('Total', total, strong: true),
+          _line(isEn ? 'Total' : 'الإجمالي', total, strong: true),
           const SizedBox(height: 22),
           FilledButton(
             onPressed: _busy ? null : _confirm,
@@ -105,12 +107,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     width: 22,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Text('Pay \$${total.toStringAsFixed(2)}'),
+                : Text(isEn ? 'Pay \$${total.toStringAsFixed(2)}' : 'دفع \$${total.toStringAsFixed(2)}'),
           ),
           const SizedBox(height: 10),
           OutlinedButton(
             onPressed: _busy ? null : () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(isEn ? 'Cancel' : 'إلغاء'),
           ),
         ],
       ),

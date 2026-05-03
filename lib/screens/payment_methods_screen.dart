@@ -76,7 +76,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                   child: TextField(
                     controller: cvvController,
                     decoration: InputDecoration(
-                      labelText: 'CVV',
+                      labelText: isEn ? 'CVV' : 'رمز التحقق',
                       hintText: 'XXX',
                       prefixIcon: const Icon(Icons.lock_outline),
                     ),

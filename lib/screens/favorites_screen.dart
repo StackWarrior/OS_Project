@@ -11,6 +11,7 @@ class FavoritesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
+    final isEn = app.locale.languageCode == 'en';
     final theme = Theme.of(context);
     final favs = app.courses.where((c) => app.isFavorite(c.id)).toList();
 
@@ -23,10 +24,12 @@ class FavoritesScreen extends StatelessWidget {
             children: [
               Icon(Icons.favorite_border, size: 56, color: theme.colorScheme.outline),
               const SizedBox(height: 12),
-              Text('No favorites', style: theme.textTheme.titleMedium),
+              Text(isEn ? 'No favorites' : 'لا توجد مفضلات', style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
               Text(
-                'Tap the heart on a course to save it for later.',
+                isEn 
+                  ? 'Tap the heart on a course to save it for later.'
+                  : 'اضغط على القلب في الدورة التدريبية لحفظها لاحقًا.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
@@ -53,7 +56,7 @@ class FavoritesScreen extends StatelessWidget {
             );
           },
           trailing: IconButton(
-            tooltip: 'Remove',
+            tooltip: isEn ? 'Remove' : 'إزالة',
             onPressed: () => app.toggleFavorite(course.id),
             icon: const Icon(Icons.favorite, color: Colors.redAccent),
           ),

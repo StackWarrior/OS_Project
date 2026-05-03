@@ -19,27 +19,30 @@ class AdminDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
+    final isEn = app.locale.languageCode == 'en';
     final user = app.currentUser;
     final theme = Theme.of(context);
 
     if (user == null || !user.isAdmin) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Admin')),
+        appBar: AppBar(title: Text(isEn ? 'Admin' : 'المشرف')),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Admin Access Only'),
+              Text(isEn ? 'Admin Access Only' : 'دخول المشرفين فقط'),
               const SizedBox(height: 12),
               Text(
-                'Only authorized administrators can access this dashboard.',
+                isEn
+                    ? 'Only authorized administrators can access this dashboard.'
+                    : 'يمكن للمشرفين المصرح لهم فقط الوصول إلى هذه لوحة التحكم.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodySmall,
               ),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Go back'),
+                child: Text(isEn ? 'Go back' : 'العودة'),
               ),
             ],
           ),
@@ -51,26 +54,28 @@ class AdminDashboardScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin · Dashboard'),
+        title: Text(isEn ? 'Admin · Dashboard' : 'المشرف · لوحة التحكم'),
         actions: [
           IconButton(
-            tooltip: 'Reload seed (demo)',
+            tooltip: isEn ? 'Reload seed (demo)' : 'إعادة تحميل البيانات (تجريبي)',
             onPressed: () async {
               final ok = await showDialog<bool>(
                     context: context,
                     builder: (ctx) => AlertDialog(
-                      title: const Text('Reset catalog?'),
-                      content: const Text(
-                        'This replaces the in-app catalog with the built-in seed list.',
+                      title: Text(isEn ? 'Reset catalog?' : 'إعادة ضبط الكتالوج؟'),
+                      content: Text(
+                        isEn
+                            ? 'This replaces the in-app catalog with the built-in seed list.'
+                            : 'سيؤدي هذا إلى استبدال الكتالوج الحالي بالقائمة المضمنة.',
                       ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(ctx, false),
-                          child: const Text('Cancel'),
+                          child: Text(isEn ? 'Cancel' : 'إلغاء'),
                         ),
                         FilledButton(
                           onPressed: () => Navigator.pop(ctx, true),
-                          child: const Text('Reset'),
+                          child: Text(isEn ? 'Reset' : 'إعادة ضبط'),
                         ),
                       ],
                     ),
@@ -85,7 +90,10 @@ class AdminDashboardScreen extends StatelessWidget {
               }
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Catalog reset to seed data')),
+                  SnackBar(
+                      content: Text(isEn
+                          ? 'Catalog reset to seed data'
+                          : 'تمت إعادة ضبط الكتالوج إلى بيانات أولية')),
                 );
               }
             },
@@ -98,29 +106,29 @@ class AdminDashboardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Quick Stats', style: theme.textTheme.titleMedium),
+            Text(isEn ? 'Quick Stats' : 'إحصائيات سريعة', style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),
             Row(
               children: [
-                _buildStatTile(context, 'Revenue', '\$${app.totalRevenue.toStringAsFixed(0)}', Icons.payments_outlined, Colors.green),
+                _buildStatTile(context, isEn ? 'Revenue' : 'الإيرادات', '\$${app.totalRevenue.toStringAsFixed(0)}', Icons.payments_outlined, Colors.green),
                 const SizedBox(width: 12),
-                _buildStatTile(context, 'Users', '${app.totalUsersCount}', Icons.people_outline, Colors.blue),
+                _buildStatTile(context, isEn ? 'Users' : 'المستخدمين', '${app.totalUsersCount}', Icons.people_outline, Colors.blue),
               ],
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                _buildStatTile(context, 'Courses', '${courses.length}', Icons.menu_book_outlined, Colors.orange),
+                _buildStatTile(context, isEn ? 'Courses' : 'الدورات', '${courses.length}', Icons.menu_book_outlined, Colors.orange),
                 const SizedBox(width: 12),
-                _buildStatTile(context, 'Featured', '${app.featuredCoursesCount}', Icons.star_outline, Colors.purple),
+                _buildStatTile(context, isEn ? 'Featured' : 'المميزة', '${app.featuredCoursesCount}', Icons.star_outline, Colors.purple),
               ],
             ),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Course Catalog', style: theme.textTheme.titleMedium),
-                Text('${courses.length} courses', style: theme.textTheme.bodySmall),
+                Text(isEn ? 'Course Catalog' : 'كتالوج الدورات', style: theme.textTheme.titleMedium),
+                Text(isEn ? '${courses.length} courses' : '${courses.length} دورة', style: theme.textTheme.bodySmall),
               ],
             ),
             const SizedBox(height: 12),
@@ -163,15 +171,15 @@ class AdminDashboardScreen extends StatelessWidget {
                             final del = await showDialog<bool>(
                                   context: context,
                                   builder: (ctx) => AlertDialog(
-                                    title: const Text('Delete course?'),
+                                    title: Text(isEn ? 'Delete course?' : 'حذف الدورة؟'),
                                     actions: [
                                       TextButton(
                                         onPressed: () => Navigator.pop(ctx, false),
-                                        child: const Text('Cancel'),
+                                        child: Text(isEn ? 'Cancel' : 'إلغاء'),
                                       ),
                                       FilledButton(
                                         onPressed: () => Navigator.pop(ctx, true),
-                                        child: const Text('Delete'),
+                                        child: Text(isEn ? 'Delete' : 'حذف'),
                                       ),
                                     ],
                                   ),
@@ -196,9 +204,9 @@ class AdminDashboardScreen extends StatelessWidget {
           app,
           Course(
             id: 'new-${DateTime.now().millisecondsSinceEpoch}',
-            title: 'New course',
-            description: 'Describe outcomes, prerequisites, and projects.',
-            category: 'Mobile',
+            title: isEn ? 'New course' : 'دورة جديدة',
+            description: isEn ? 'Describe outcomes, prerequisites, and projects.' : 'صف النتائج والمتطلبات والمشاريع.',
+            category: isEn ? 'Mobile' : 'الجوال',
             price: 19.99,
             thumbnailUrl: 'https://picsum.photos/seed/newcourse/800/480',
             videoUrl: kDemoVideoUrl,
@@ -207,15 +215,15 @@ class AdminDashboardScreen extends StatelessWidget {
             quiz: [
               QuizQuestion(
                 id: 'nq1',
-                prompt: 'Sample question?',
-                options: const ['A', 'B', 'C', 'D'],
+                prompt: isEn ? 'Sample question?' : 'سؤال تجريبي؟',
+                options: isEn ? const ['A', 'B', 'C', 'D'] : const ['أ', 'ب', 'ج', 'د'],
                 correctIndex: 0,
               ),
             ],
           ),
         ),
         icon: const Icon(Icons.add),
-        label: const Text('Add course'),
+        label: Text(isEn ? 'Add course' : 'إضافة دورة'),
       ),
     );
   }
@@ -255,6 +263,7 @@ class AdminDashboardScreen extends StatelessWidget {
   }
 
   Future<void> _editCourse(BuildContext context, AppState app, Course course) async {
+    final isEn = app.locale.languageCode == 'en';
     final title = TextEditingController(text: course.title);
     final desc = TextEditingController(text: course.description);
     final category = TextEditingController(text: course.category);
@@ -319,7 +328,7 @@ class AdminDashboardScreen extends StatelessWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Upload failed: ${e.toString()}'),
+              content: Text(isEn ? 'Upload failed: ${e.toString()}' : 'فشل الرفع: ${e.toString()}'),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -367,37 +376,45 @@ class AdminDashboardScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 24),
                                   Text(
-                                    course.id.startsWith('new-') ? 'Create New Course' : 'Edit Course Details',
+                                    course.id.startsWith('new-') 
+                                      ? (isEn ? 'Create New Course' : 'إنشاء دورة جديدة') 
+                                      : (isEn ? 'Edit Course Details' : 'تعديل تفاصيل الدورة'),
                                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                           fontWeight: FontWeight.bold,
                                         ),
                                   ),
                                   const SizedBox(height: 24),
 
-                                  Text('General Information', style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.primary)),
+                                  Text(
+                                    isEn ? 'General Information' : 'معلومات عامة', 
+                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.primary)
+                                  ),
                                   const SizedBox(height: 16),
                                   TextFormField(
                                     controller: title,
-                                    decoration: _inputDecoration('Course Title', Icons.title),
-                                    validator: (v) => v == null || v.isEmpty ? 'Title is required' : null,
+                                    decoration: _inputDecoration(isEn ? 'Course Title' : 'عنوان الدورة', Icons.title),
+                                    validator: (v) => v == null || v.isEmpty ? (isEn ? 'Title is required' : 'العنوان مطلوب') : null,
                                   ),
                                   const SizedBox(height: 16),
                                   TextFormField(
                                     controller: category,
-                                    decoration: _inputDecoration('Category', Icons.category_outlined),
-                                    validator: (v) => v == null || v.isEmpty ? 'Category is required' : null,
+                                    decoration: _inputDecoration(isEn ? 'Category' : 'الفئة', Icons.category_outlined),
+                                    validator: (v) => v == null || v.isEmpty ? (isEn ? 'Category is required' : 'الفئة مطلوبة') : null,
                                   ),
                                   const SizedBox(height: 16),
                                   TextFormField(
                                     controller: desc,
                                     maxLines: 3,
-                                    decoration: _inputDecoration('Description', Icons.description_outlined),
-                                    validator: (v) => v == null || v.isEmpty ? 'Description is required' : null,
+                                    decoration: _inputDecoration(isEn ? 'Description' : 'الوصف', Icons.description_outlined),
+                                    validator: (v) => v == null || v.isEmpty ? (isEn ? 'Description is required' : 'الوصف مطلوب') : null,
                                   ),
                                   const SizedBox(height: 32),
 
                                   // Media Section Header
-                                  Text('Media Assets', style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.primary)),
+                                  Text(
+                                    isEn ? 'Media Assets' : 'وسائط الدورة', 
+                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.primary)
+                                  ),
                                   const SizedBox(height: 16),
 
                                   // Thumbnail Upload Area
@@ -432,13 +449,16 @@ class AdminDashboardScreen extends StatelessWidget {
                                               child: Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  Text('Course Thumbnail', style: Theme.of(context).textTheme.labelLarge),
-                                                  const Text('JPG or PNG, recommended 800x480', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                                  Text(isEn ? 'Course Thumbnail' : 'الصورة المصغرة', style: Theme.of(context).textTheme.labelLarge),
+                                                  Text(
+                                                    isEn ? 'JPG or PNG, recommended 800x480' : 'JPG أو PNG، يفضل 800x480', 
+                                                    style: const TextStyle(fontSize: 12, color: Colors.grey)
+                                                  ),
                                                   const SizedBox(height: 8),
                                                   FilledButton.tonalIcon(
                                                     onPressed: () => pickAndUpload(setModal, false),
                                                     icon: const Icon(Icons.upload, size: 18),
-                                                    label: const Text('Upload Image'),
+                                                    label: Text(isEn ? 'Upload Image' : 'رفع صورة'),
                                                   ),
                                                 ],
                                               ),
@@ -449,7 +469,7 @@ class AdminDashboardScreen extends StatelessWidget {
                                         TextFormField(
                                           controller: thumb,
                                           style: const TextStyle(fontSize: 12),
-                                          decoration: _inputDecoration('Thumbnail URL', Icons.link).copyWith(
+                                          decoration: _inputDecoration(isEn ? 'Thumbnail URL' : 'رابط الصورة', Icons.link).copyWith(
                                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                           ),
                                           onChanged: (_) => setModal(() {}),
@@ -492,13 +512,16 @@ class AdminDashboardScreen extends StatelessWidget {
                                               child: Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  Text('Promo Video', style: Theme.of(context).textTheme.labelLarge),
-                                                  const Text('MP4 format, max 50MB', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                                  Text(isEn ? 'Promo Video' : 'فيديو ترويجي', style: Theme.of(context).textTheme.labelLarge),
+                                                  Text(
+                                                    isEn ? 'MP4 format, max 50MB' : 'صيغة MP4، بحد أقصى 50 ميجابايت', 
+                                                    style: const TextStyle(fontSize: 12, color: Colors.grey)
+                                                  ),
                                                   const SizedBox(height: 8),
                                                   FilledButton.tonalIcon(
                                                     onPressed: () => pickAndUpload(setModal, true),
                                                     icon: const Icon(Icons.video_call, size: 18),
-                                                    label: const Text('Upload Video'),
+                                                    label: Text(isEn ? 'Upload Video' : 'رفع فيديو'),
                                                   ),
                                                 ],
                                               ),
@@ -509,7 +532,7 @@ class AdminDashboardScreen extends StatelessWidget {
                                         TextFormField(
                                           controller: video,
                                           style: const TextStyle(fontSize: 12),
-                                          decoration: _inputDecoration('Video URL', Icons.link).copyWith(
+                                          decoration: _inputDecoration(isEn ? 'Video URL' : 'رابط الفيديو', Icons.link).copyWith(
                                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                           ),
                                           onChanged: (_) => setModal(() {}),
@@ -519,7 +542,10 @@ class AdminDashboardScreen extends StatelessWidget {
                                   ),
 
                                   const SizedBox(height: 32),
-                                  Text('Pricing & Duration', style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.primary)),
+                                  Text(
+                                    isEn ? 'Pricing & Duration' : 'التسعير والمدة', 
+                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.primary)
+                                  ),
                                   const SizedBox(height: 16),
                                   Row(
                                     children: [
@@ -527,8 +553,8 @@ class AdminDashboardScreen extends StatelessWidget {
                                         child: TextFormField(
                                           controller: price,
                                           keyboardType: TextInputType.number,
-                                          decoration: _inputDecoration('Price', Icons.attach_money),
-                                          validator: (v) => double.tryParse(v ?? '') == null ? 'Invalid' : null,
+                                          decoration: _inputDecoration(isEn ? 'Price' : 'السعر', Icons.attach_money),
+                                          validator: (v) => double.tryParse(v ?? '') == null ? (isEn ? 'Invalid' : 'غير صالح') : null,
                                         ),
                                       ),
                                       const SizedBox(width: 16),
@@ -536,8 +562,8 @@ class AdminDashboardScreen extends StatelessWidget {
                                         child: TextFormField(
                                           controller: duration,
                                           keyboardType: TextInputType.number,
-                                          decoration: _inputDecoration('Duration (min)', Icons.timer_outlined),
-                                          validator: (v) => int.tryParse(v ?? '') == null ? 'Invalid' : null,
+                                          decoration: _inputDecoration(isEn ? 'Duration (min)' : 'المدة (دقائق)', Icons.timer_outlined),
+                                          validator: (v) => int.tryParse(v ?? '') == null ? (isEn ? 'Invalid' : 'غير صالح') : null,
                                         ),
                                       ),
                                     ],
@@ -546,8 +572,8 @@ class AdminDashboardScreen extends StatelessWidget {
                                   SwitchListTile(
                                     contentPadding: EdgeInsets.zero,
                                     value: featured,
-                                    title: const Text('Featured Course'),
-                                    subtitle: const Text('Highlight this course on the home screen'),
+                                    title: Text(isEn ? 'Featured Course' : 'دورة مميزة'),
+                                    subtitle: Text(isEn ? 'Highlight this course on the home screen' : 'تمييز هذه الدورة على الشاشة الرئيسية'),
                                     activeThumbColor: Theme.of(context).colorScheme.primary,
                                     onChanged: (v) => setModal(() => featured = v),
                                   ),
@@ -566,12 +592,12 @@ class AdminDashboardScreen extends StatelessWidget {
                                             }
                                           },
                                     icon: isUploading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.save),
-                                    label: Text(isUploading ? 'Uploading...' : 'Save Changes'),
+                                    label: Text(isUploading ? (isEn ? 'Uploading...' : 'جاري الرفع...') : (isEn ? 'Save Changes' : 'حفظ التغييرات')),
                                   ),
                                   const SizedBox(height: 12),
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx, false),
-                                    child: const Text('Cancel'),
+                                    child: Text(isEn ? 'Cancel' : 'إلغاء'),
                                   ),
                                   const SizedBox(height: 24),
                                 ],
@@ -593,7 +619,7 @@ class AdminDashboardScreen extends StatelessWidget {
                                           ),
                                           const SizedBox(height: 24),
                                           Text(
-                                            'Uploading Media...',
+                                            isEn ? 'Uploading Media...' : 'جاري رفع الوسائط...',
                                             style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                           ),
                                           if (uploadProgress != null) ...[
@@ -648,9 +674,9 @@ class AdminDashboardScreen extends StatelessWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             behavior: SnackBarBehavior.floating,
-            content: Text('Course updated successfully'),
+            content: Text(isEn ? 'Course updated successfully' : 'تم تحديث الدورة بنجاح'),
           ),
         );
       }
@@ -681,16 +707,18 @@ class AdminDashboardScreen extends StatelessWidget {
   }
 
   void _previewVideo(BuildContext context, String url) {
+    final isEn = context.read<AppState>().locale.languageCode == 'en';
     showDialog(
       context: context,
-      builder: (ctx) => _VideoPreviewDialog(url: url),
+      builder: (ctx) => _VideoPreviewDialog(url: url, isEn: isEn),
     );
   }
 }
 
 class _VideoPreviewDialog extends StatefulWidget {
   final String url;
-  const _VideoPreviewDialog({required this.url});
+  final bool isEn;
+  const _VideoPreviewDialog({required this.url, required this.isEn});
 
   @override
   State<_VideoPreviewDialog> createState() => _VideoPreviewDialogState();
@@ -728,7 +756,7 @@ class _VideoPreviewDialogState extends State<_VideoPreviewDialog> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Preview error: $e')),
+          SnackBar(content: Text(widget.isEn ? 'Preview error: $e' : 'خطأ في المعاينة: $e')),
         );
       }
     }
@@ -753,7 +781,7 @@ class _VideoPreviewDialogState extends State<_VideoPreviewDialog> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Video Preview', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(widget.isEn ? 'Video Preview' : 'معاينة الفيديو', style: const TextStyle(fontWeight: FontWeight.bold)),
                 IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
               ],
             ),
